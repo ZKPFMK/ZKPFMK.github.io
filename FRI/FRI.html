@@ -1,0 +1,894 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FRI 协议详解</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+<style>
+  :root {
+    --ivory:  #FAF9F5;
+    --paper:  #FFFFFF;
+    --slate:  #141413;
+    --clay:   #D97757;
+    --clay-d: #B85C3E;
+    --oat:    #E3DACC;
+    --olive:  #788C5D;
+    --g100:   #F0EEE6;
+    --g200:   #E6E3DA;
+    --g300:   #A8A69E;
+    --g500:   #5C5B56;
+    --g700:   #3D3D3A;
+    --serif: ui-serif, Georgia, "Times New Roman", Times, serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--ivory);
+    color: var(--slate);
+    font-family: var(--sans);
+    line-height: 1.72;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 28px 120px; }
+
+  /* ── masthead ───────────────────── */
+  header.masthead {
+    padding: 72px 0 44px;
+    border-bottom: 1.5px solid var(--g300);
+    margin-bottom: 12px;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--g500);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 22px; height: 1.5px;
+    background: var(--clay);
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(34px, 5vw, 52px);
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+    margin: 0 0 10px;
+  }
+  h1 em { font-style: italic; color: var(--clay); }
+  .intro {
+    font-size: 19px;
+    color: var(--g700);
+    margin: 14px 0 0;
+    max-width: 600px;
+    line-height: 1.72;
+  }
+
+  /* ── toc pills ─────────────────── */
+  nav.toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 22px 0 0;
+  }
+  nav.toc a {
+    font-size: 13px;
+    padding: 6px 14px;
+    border: 1.5px solid var(--g300);
+    border-radius: 999px;
+    text-decoration: none;
+    color: var(--g700);
+    background: var(--paper);
+    transition: border-color 120ms, color 120ms;
+  }
+  nav.toc a:hover { border-color: var(--slate); color: var(--slate); }
+
+  /* ── sections ──────────────────── */
+  section { margin-top: 36px; scroll-margin-top: 28px; }
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .sec-head .idx {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--clay);
+    font-weight: 600;
+    width: 30px;
+    flex-shrink: 0;
+  }
+  .sec-head h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 27px;
+    letter-spacing: -0.01em;
+  }
+  h3 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 21px;
+    margin: 44px 0 12px 44px;
+    color: var(--slate);
+  }
+  .sub-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 36px 0 12px 44px;
+  }
+  .sub-head .sub-idx {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--clay);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .sub-head h3 {
+    margin: 0;
+  }
+  p { margin: 12px 0; padding-left: 44px; font-size: 19px; line-height: 1.78; }
+  ol, ul { padding-left: 68px; margin: 14px 0; }
+  li { margin: 6px 0; font-size: 19px; line-height: 1.72; }
+
+  /* ── diagram card ──────────────── */
+  .diagram {
+    margin: 24px 0 24px 44px;
+    padding: 12px 6px;
+    background: var(--paper);
+    border: 1.5px solid var(--g300);
+    border-radius: 12px;
+    overflow-x: auto;
+  }
+  .diagram svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+
+  /* ── math block ────────────────── */
+  .math-block {
+    margin: 18px 0 18px 44px;
+    padding: 14px 22px;
+    background: var(--g100);
+    border-radius: 10px;
+    overflow-x: auto;
+    font-size: 19px;
+    line-height: 2;
+  }
+
+  /* ── step card ─────────────────── */
+  .step {
+    margin: 16px 0 16px 44px;
+    padding: 14px 18px;
+    background: var(--paper);
+    border-left: 3px solid var(--clay);
+    border-radius: 0 10px 10px 0;
+    font-size: 19px;
+    line-height: 1.78;
+  }
+  .step strong { color: var(--clay-d); }
+
+  /* ── SVG common ────────────────── */
+  svg .nd { fill: var(--paper); stroke: var(--g300); stroke-width: 1.4; }
+  svg .nd-hl { fill: #FFF3ED; stroke: var(--clay); stroke-width: 1.4; }
+  svg .nd-hl2 { fill: var(--oat); stroke: var(--g500); stroke-width: 1.4; }
+  svg .ln { stroke: var(--g500); stroke-width: 1.3; fill: none; }
+  svg .ln-fold { stroke: var(--clay); stroke-width: 1.2; fill: none; opacity: .75; }
+  svg .ln-dash { stroke: var(--g500); stroke-width: 1.2; fill: none; stroke-dasharray: 5 3; }
+  svg .tx { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 19px; fill: var(--slate); text-anchor: middle; dominant-baseline: central; }
+  svg .tx-s { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 17px; fill: var(--slate); text-anchor: middle; dominant-baseline: central; }
+  svg .tx-lbl { font-family: system-ui, sans-serif; font-size: 17px; fill: var(--slate); text-anchor: middle; dominant-baseline: central; }
+  svg .tx-clay { font-family: system-ui, sans-serif; font-size: 18px; fill: var(--clay); text-anchor: middle; dominant-baseline: central; font-style: italic; }
+  svg .tx-layer { font-family: system-ui, sans-serif; font-size: 17px; fill: var(--g700); dominant-baseline: central; }
+
+  /* ── check mark ────────────────── */
+  .check { color: var(--olive); font-weight: 600; }
+
+  /* ── footer ────────────────────── */
+  footer {
+    margin-top: 80px;
+    border-top: 1.5px solid var(--g300);
+    padding-top: 28px;
+    font-size: 12px;
+    color: var(--g500);
+    text-align: center;
+    font-family: var(--serif);
+    font-style: italic;
+  }
+
+  @media (max-width: 600px) {
+    p, .math-block, .step, h3 { padding-left: 0; margin-left: 0; }
+    ol, ul { padding-left: 24px; }
+    .sec-head .idx { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ====== HEADER ====== -->
+  <header class="masthead">
+    <div class="eyebrow">Technical Blog · Cryptography</div>
+    <h1>FRI <em>协议</em>详解</h1>
+    <p class="intro">
+      Fast Reed-Solomon IOP of Proximity —— 通过一个完整的数值例子，逐步走完 FRI 协议的承诺阶段与查询阶段。
+    </p>
+    <nav class="toc">
+      <a href="#background">问题背景</a>
+      <a href="#commitment">承诺阶段</a>
+      <a href="#query">查询阶段</a>
+    </nav>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <!-- SECTION 01 : 问题背景                                            -->
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section id="background">
+    <div class="sec-head"><span class="idx">01</span><h2>问题背景</h2></div>
+    <p>
+      如何使用 FRI 证明 Merkle 承诺确实是一个合法的码字（即它对应一个度数低于某个上界 \(N\) 的多项式）？
+    </p>
+    <p>
+      FRI 协议分为两个阶段：<strong>承诺阶段</strong>中，Prover 将码字逐轮折叠减半并承诺；<strong>查询阶段</strong>中，Verifier 随机抽查若干位置，验证相邻两层的折叠关系是否一致。
+    </p>
+    <p>下面通过一个完整的数值例子走一遍 FRI 的全过程。</p>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <!-- SECTION 02 : 承诺阶段                                            -->
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section id="commitment">
+    <div class="sec-head"><span class="idx">02</span><h2>承诺阶段</h2></div>
+
+    <p>承诺阶段由三个操作反复循环组成：<strong>编码（encode）</strong>、<strong>承诺（commit）</strong>、<strong>折叠（fold）</strong>——直到消息被折到长度为 1 为止。每一轮的流程如下：</p>
+    <ol>
+      <li><strong>编码</strong>：将当前长度为 \(N\) 的消息向量视为多项式系数，在求值域 \(D\) 上做 RS 编码，得到长度为 \(M = N \cdot k\) 的码字。</li>
+      <li><strong>承诺</strong>：对码字构建 Merkle 树，将树根发送给 verifier。</li>
+      <li><strong>折叠</strong>：verifier 发送随机挑战 \(r\)，prover 用 \(r\) 将消息对半折叠，长度缩减为 \(N/2\)；同时求值域 \(D\) 也对半缩小。</li>
+    </ol>
+    <p>重复以上步骤，最终 prover 共发出 \(\log_2 N + 1\) 个 Merkle 根。</p>
+
+    <!-- ── Overview SVG ── -->
+    <div class="diagram">
+      <svg viewBox="0 0 900 330" width="900" height="330">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#5C5B56"/>
+          </marker>
+          <marker id="ah-clay" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#D97757"/>
+          </marker>
+        </defs>
+
+        <!-- Layer labels -->
+        <text class="tx-layer" x="8" y="50">Layer 0</text>
+        <text class="tx-layer" x="8" y="165">Layer 1</text>
+        <text class="tx-layer" x="8" y="285">Layer 2</text>
+
+        <!-- ── Layer 0 ── -->
+        <!-- Message group -->
+        <rect class="nd" x="70" y="36" width="115" height="28" rx="7"/>
+        <text class="tx" x="88" y="50">a₀</text>
+        <text class="tx" x="112" y="50">a₁</text>
+        <text class="tx" x="138" y="50">a₂</text>
+        <text class="tx" x="162" y="50">a₃</text>
+
+        <!-- Encode arrow -->
+        <line class="ln-dash" x1="198" y1="50" x2="335" y2="50" marker-end="url(#ah)"/>
+        <text class="tx-lbl" x="267" y="40">encode on D<tspan dy="3" font-size="9">a</tspan><tspan dy="-3"> </tspan></text>
+
+        <!-- Codeword elements -->
+        <rect class="nd" x="345" y="38" width="28" height="28" rx="5"/><text class="tx-s" x="359" y="50">u₀</text>
+        <rect class="nd" x="378" y="38" width="28" height="28" rx="5"/><text class="tx-s" x="392" y="50">u₄</text>
+        <rect class="nd" x="414" y="38" width="28" height="28" rx="5"/><text class="tx-s" x="428" y="50">u₂</text>
+        <rect class="nd" x="447" y="38" width="28" height="28" rx="5"/><text class="tx-s" x="461" y="50">u₆</text>
+        <rect class="nd" x="483" y="38" width="28" height="28" rx="5"/><text class="tx-s" x="497" y="50">u₁</text>
+        <rect class="nd" x="516" y="38" width="28" height="28" rx="5"/><text class="tx-s" x="530" y="50">u₅</text>
+        <rect class="nd" x="552" y="38" width="28" height="28" rx="5"/><text class="tx-s" x="566" y="50">u₃</text>
+        <rect class="nd" x="585" y="38" width="28" height="28" rx="5"/><text class="tx-s" x="599" y="50">u₇</text>
+
+        <!-- Commit arrow -->
+        <line class="ln-dash" x1="622" y1="50" x2="720" y2="50" marker-end="url(#ah)"/>
+        <text class="tx-lbl" x="671" y="40">commit</text>
+
+        <!-- Root -->
+        <rect class="nd-hl" x="730" y="38" width="62" height="28" rx="6"/>
+        <text class="tx" x="761" y="50">root<tspan dy="3" font-size="9">u</tspan><tspan dy="-3"> </tspan></text>
+
+        <!-- ── Fold lines L0 → L1 (message) ── -->
+        <line class="ln-fold" x1="88" y1="64" x2="100" y2="151"/>
+        <line class="ln-fold" x1="112" y1="64" x2="100" y2="151"/>
+        <line class="ln-fold" x1="138" y1="64" x2="152" y2="151"/>
+        <line class="ln-fold" x1="162" y1="64" x2="152" y2="151"/>
+
+        <!-- ── Fold lines L0 → L1 (codeword) ── -->
+        <line class="ln-fold" x1="359" y1="66" x2="375" y2="151"/>
+        <line class="ln-fold" x1="392" y1="66" x2="375" y2="151"/>
+        <line class="ln-fold" x1="428" y1="66" x2="441" y2="151"/>
+        <line class="ln-fold" x1="461" y1="66" x2="441" y2="151"/>
+        <line class="ln-fold" x1="497" y1="66" x2="510" y2="151"/>
+        <line class="ln-fold" x1="530" y1="66" x2="510" y2="151"/>
+        <line class="ln-fold" x1="566" y1="66" x2="576" y2="151"/>
+        <line class="ln-fold" x1="599" y1="66" x2="576" y2="151"/>
+
+        <!-- fold r label -->
+        <text class="tx-clay" x="660" y="108">fold r</text>
+
+        <!-- ── Domain half L0 → L1 ── -->
+        <line class="ln" x1="312" y1="68" x2="312" y2="148" marker-end="url(#ah)"/>
+        <text class="tx-lbl" x="290" y="108" text-anchor="end">half</text>
+
+        <!-- ── Layer 1 ── -->
+        <!-- Message group -->
+        <rect class="nd" x="82" y="151" width="88" height="28" rx="7"/>
+        <text class="tx" x="100" y="165">b₀</text>
+        <text class="tx" x="152" y="165">b₁</text>
+
+        <!-- Encode arrow -->
+        <line class="ln-dash" x1="198" y1="165" x2="335" y2="165" marker-end="url(#ah)"/>
+        <text class="tx-lbl" x="267" y="155">encode on D<tspan dy="3" font-size="9">b</tspan><tspan dy="-3"> </tspan></text>
+
+        <!-- Codeword elements -->
+        <rect class="nd" x="361" y="153" width="28" height="28" rx="5"/><text class="tx-s" x="375" y="165">v₀</text>
+        <rect class="nd" x="427" y="153" width="28" height="28" rx="5"/><text class="tx-s" x="441" y="165">v₂</text>
+        <rect class="nd" x="496" y="153" width="28" height="28" rx="5"/><text class="tx-s" x="510" y="165">v₁</text>
+        <rect class="nd" x="562" y="153" width="28" height="28" rx="5"/><text class="tx-s" x="576" y="165">v₃</text>
+
+        <!-- Commit arrow -->
+        <line class="ln-dash" x1="622" y1="165" x2="720" y2="165" marker-end="url(#ah)"/>
+        <text class="tx-lbl" x="671" y="155">commit</text>
+
+        <!-- Root -->
+        <rect class="nd-hl" x="730" y="153" width="62" height="28" rx="6"/>
+        <text class="tx" x="761" y="165">root<tspan dy="3" font-size="9">v</tspan><tspan dy="-3"> </tspan></text>
+
+        <!-- ── Fold lines L1 → L2 (message) ── -->
+        <line class="ln-fold" x1="100" y1="179" x2="126" y2="271"/>
+        <line class="ln-fold" x1="152" y1="179" x2="126" y2="271"/>
+
+        <!-- ── Fold lines L1 → L2 (codeword) ── -->
+        <line class="ln-fold" x1="375" y1="181" x2="408" y2="271"/>
+        <line class="ln-fold" x1="441" y1="181" x2="408" y2="271"/>
+        <line class="ln-fold" x1="510" y1="181" x2="543" y2="271"/>
+        <line class="ln-fold" x1="576" y1="181" x2="543" y2="271"/>
+
+        <!-- fold s label -->
+        <text class="tx-clay" x="660" y="228">fold s</text>
+
+        <!-- ── Domain half L1 → L2 ── -->
+        <line class="ln" x1="312" y1="183" x2="312" y2="263" marker-end="url(#ah)"/>
+        <text class="tx-lbl" x="290" y="223" text-anchor="end">half</text>
+
+        <!-- ── Layer 2 ── -->
+        <!-- Message group -->
+        <rect class="nd" x="105" y="271" width="44" height="28" rx="7"/>
+        <text class="tx" x="126" y="285">c₀</text>
+
+        <!-- Encode arrow -->
+        <line class="ln-dash" x1="198" y1="285" x2="335" y2="285" marker-end="url(#ah)"/>
+        <text class="tx-lbl" x="267" y="275">encode on D<tspan dy="3" font-size="9">c</tspan><tspan dy="-3"> </tspan></text>
+
+        <!-- Codeword elements -->
+        <rect class="nd" x="394" y="273" width="28" height="28" rx="5"/><text class="tx-s" x="408" y="285">w₀</text>
+        <rect class="nd" x="529" y="273" width="28" height="28" rx="5"/><text class="tx-s" x="543" y="285">w₁</text>
+
+        <!-- Commit arrow -->
+        <line class="ln-dash" x1="622" y1="285" x2="720" y2="285" marker-end="url(#ah)"/>
+        <text class="tx-lbl" x="671" y="275">commit</text>
+
+        <!-- Root -->
+        <rect class="nd-hl" x="730" y="273" width="62" height="28" rx="6"/>
+        <text class="tx" x="761" y="285">root<tspan dy="3" font-size="9">w</tspan><tspan dy="-3"> </tspan></text>
+
+        <!-- bit-reverse label -->
+        <text class="tx-lbl" x="480" y="26">codeword (bit-reverse order)</text>
+      </svg>
+    </div>
+
+    <!-- ── Merkle Trees SVG ── -->
+    <div class="diagram">
+      <svg viewBox="0 0 780 195" width="780" height="195">
+        <!-- Tree 1: root_u -->
+        <rect class="nd-hl" x="127" y="8" width="60" height="26" rx="6"/>
+        <text class="tx" x="157" y="19">root<tspan dy="3" font-size="9">u</tspan><tspan dy="-3"> </tspan></text>
+        <line class="ln" x1="142" y1="34" x2="78" y2="55"/>
+        <line class="ln" x1="172" y1="34" x2="237" y2="55"/>
+        <rect class="nd" x="58" y="55" width="40" height="26" rx="5"/>
+        <text class="tx-s" x="78" y="66">H₀</text>
+        <rect class="nd" x="217" y="55" width="40" height="26" rx="5"/>
+        <text class="tx-s" x="237" y="66">H₁</text>
+        <line class="ln" x1="68" y1="81" x2="38" y2="102"/>
+        <line class="ln" x1="88" y1="81" x2="118" y2="102"/>
+        <line class="ln" x1="227" y1="81" x2="197" y2="102"/>
+        <line class="ln" x1="247" y1="81" x2="277" y2="102"/>
+        <rect class="nd" x="20" y="102" width="36" height="26" rx="5"/>
+        <text class="tx-s" x="38" y="113">h₀</text>
+        <rect class="nd" x="100" y="102" width="36" height="26" rx="5"/>
+        <text class="tx-s" x="118" y="113">h₁</text>
+        <rect class="nd" x="179" y="102" width="36" height="26" rx="5"/>
+        <text class="tx-s" x="197" y="113">h₂</text>
+        <rect class="nd" x="259" y="102" width="36" height="26" rx="5"/>
+        <text class="tx-s" x="277" y="113">h₃</text>
+        <line class="ln-dash" x1="38" y1="128" x2="38" y2="145"/>
+        <line class="ln-dash" x1="118" y1="128" x2="118" y2="145"/>
+        <line class="ln-dash" x1="197" y1="128" x2="197" y2="145"/>
+        <line class="ln-dash" x1="277" y1="128" x2="277" y2="145"/>
+        <rect class="nd" x="10" y="145" width="56" height="26" rx="5"/>
+        <text class="tx-s" x="38" y="156">u₀,u₄</text>
+        <rect class="nd" x="90" y="145" width="56" height="26" rx="5"/>
+        <text class="tx-s" x="118" y="156">u₂,u₆</text>
+        <rect class="nd" x="169" y="145" width="56" height="26" rx="5"/>
+        <text class="tx-s" x="197" y="156">u₁,u₅</text>
+        <rect class="nd" x="249" y="145" width="56" height="26" rx="5"/>
+        <text class="tx-s" x="277" y="156">u₃,u₇</text>
+
+        <!-- Tree 2: root_v -->
+        <rect class="nd-hl" x="420" y="8" width="60" height="26" rx="6"/>
+        <text class="tx" x="450" y="19">root<tspan dy="3" font-size="9">v</tspan><tspan dy="-3"> </tspan></text>
+        <line class="ln" x1="435" y1="34" x2="405" y2="55"/>
+        <line class="ln" x1="465" y1="34" x2="495" y2="55"/>
+        <rect class="nd" x="377" y="55" width="56" height="26" rx="5"/>
+        <text class="tx-s" x="405" y="66">h₀</text>
+        <rect class="nd" x="467" y="55" width="56" height="26" rx="5"/>
+        <text class="tx-s" x="495" y="66">h₁</text>
+        <line class="ln-dash" x1="405" y1="81" x2="405" y2="102"/>
+        <line class="ln-dash" x1="495" y1="81" x2="495" y2="102"/>
+        <rect class="nd" x="377" y="102" width="56" height="26" rx="5"/>
+        <text class="tx-s" x="405" y="113">v₀,v₂</text>
+        <rect class="nd" x="467" y="102" width="56" height="26" rx="5"/>
+        <text class="tx-s" x="495" y="113">v₁,v₃</text>
+
+        <!-- Tree 3: root_w -->
+        <rect class="nd-hl" x="630" y="8" width="60" height="26" rx="6"/>
+        <text class="tx" x="660" y="19">root<tspan dy="3" font-size="9">w</tspan><tspan dy="-3"> </tspan></text>
+        <line class="ln-dash" x1="660" y1="34" x2="660" y2="55"/>
+        <rect class="nd" x="630" y="55" width="60" height="26" rx="5"/>
+        <text class="tx-s" x="660" y="66">w₀,w₁</text>
+      </svg>
+    </div>
+
+    <!-- ── RS 编码 ── -->
+    <div class="sub-head"><span class="sub-idx">2.1</span><h3>RS 编码</h3></div>
+    <p>如何把一个长度为 \(N\) 的消息向量编码为长为 \(M=N \cdot k\) 的码字（\(k\) 为膨胀倍数）？RS 编码的做法是：把它看作一个次数低于 \(N\) 的多项式 \(f(X)\) 的系数向量，然后在集合 \(D\) 上对 \(f\) 求值，所有求值结果就构成了码字。</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 940 70" width="940" height="70">
+        <rect class="nd" x="10" y="14" width="260" height="32" rx="7"/>
+        <text class="tx" x="140" y="29">a = (a₀, a₁, a₂, a₃)</text>
+        <line class="ln-dash" x1="280" y1="29" x2="420" y2="29" marker-end="url(#ah)"/>
+        <text class="tx-lbl" x="350" y="18">RS encode on D</text>
+        <rect class="nd" x="430" y="14" width="480" height="32" rx="7"/>
+        <text class="tx" x="670" y="29">u = (u₀, u₁, u₂, u₃, u₄, u₅, u₆, u₇)</text>
+        <text class="tx-lbl" x="140" y="58">message</text>
+        <text class="tx-lbl" x="670" y="58">codeword</text>
+      </svg>
+    </div>
+
+    <p><strong>例子</strong>：取 \(N = 4\)、\(k=2\)、\(M = 8\)、有限域 \(\mathbb{F}_{17}\)。取 \(M\) 阶乘法子群作为求值域，其生成元为 \(g = 9\)，即 \( D_a = \{g^0,\ g^1,\ \dots,\ g^7\} = \{1,\ 9,\ 13,\ 15,\ 16,\ 8,\ 4,\ 2\} \)，取消息向量 \(\mathbf{a} = (2, 3, 5, 7)\)，则其对应的多项式为</p>
+
+    <div class="math-block">\[f(X) = 2 + 3X + 5X^2 + 7X^3\]</div>
+
+    <p>将 \(f\) 在 \(D_a\) 的每个点上求值，得到长度为 8 的码字 \(\mathbf{u}=(0,\ 12,\ 13,\ 11,\ 14,\ 3,\ 15,\ 16)\)。</p>
+
+    <!-- ── 承诺 ── -->
+    <div class="sub-head"><span class="sub-idx">2.2</span><h3>承诺</h3></div>
+    <p>得到码字后，prover 需要将其承诺给 verifier。承诺的方式是构建一棵 Merkle 树：将码字按 bit-reverse 顺序排列后，相邻两个元素配对作为叶子节点，逐层哈希直到得到根节点。</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 380 190" width="380" height="190">
+        <rect class="nd-hl" x="157" y="6" width="60" height="26" rx="6"/>
+        <text class="tx" x="187" y="17">root<tspan dy="3" font-size="9">u</tspan><tspan dy="-3"> </tspan></text>
+        <line class="ln" x1="172" y1="32" x2="95" y2="50"/>
+        <line class="ln" x1="202" y1="32" x2="280" y2="50"/>
+        <rect class="nd" x="70" y="50" width="50" height="26" rx="5"/>
+        <text class="tx-s" x="95" y="61">H₀</text>
+        <rect class="nd" x="255" y="50" width="50" height="26" rx="5"/>
+        <text class="tx-s" x="280" y="61">H₁</text>
+        <line class="ln" x1="82" y1="76" x2="47" y2="95"/>
+        <line class="ln" x1="108" y1="76" x2="143" y2="95"/>
+        <line class="ln" x1="267" y1="76" x2="232" y2="95"/>
+        <line class="ln" x1="293" y1="76" x2="328" y2="95"/>
+        <rect class="nd" x="25" y="95" width="44" height="26" rx="5"/>
+        <text class="tx-s" x="47" y="106">h₀</text>
+        <rect class="nd" x="121" y="95" width="44" height="26" rx="5"/>
+        <text class="tx-s" x="143" y="106">h₁</text>
+        <rect class="nd" x="210" y="95" width="44" height="26" rx="5"/>
+        <text class="tx-s" x="232" y="106">h₂</text>
+        <rect class="nd" x="306" y="95" width="44" height="26" rx="5"/>
+        <text class="tx-s" x="328" y="106">h₃</text>
+        <line class="ln-dash" x1="47" y1="121" x2="47" y2="140"/>
+        <line class="ln-dash" x1="143" y1="121" x2="143" y2="140"/>
+        <line class="ln-dash" x1="232" y1="121" x2="232" y2="140"/>
+        <line class="ln-dash" x1="328" y1="121" x2="328" y2="140"/>
+        <rect class="nd" x="15" y="140" width="64" height="26" rx="5"/>
+        <text class="tx-s" x="47" y="151">u₀,u₄</text>
+        <rect class="nd" x="111" y="140" width="64" height="26" rx="5"/>
+        <text class="tx-s" x="143" y="151">u₂,u₆</text>
+        <rect class="nd" x="200" y="140" width="64" height="26" rx="5"/>
+        <text class="tx-s" x="232" y="151">u₁,u₅</text>
+        <rect class="nd" x="296" y="140" width="64" height="26" rx="5"/>
+        <text class="tx-s" x="328" y="151">u₃,u₇</text>
+      </svg>
+    </div>
+
+    <p><strong>例子</strong>：码字 \(\mathbf{u} = (u_0, u_1, u_2, u_3, u_4, u_5, u_6, u_7)\) 共 8 个元素。按 bit-reverse 排列后为 \((u_0, u_4, u_2, u_6, u_1, u_5, u_3, u_7)\)，相邻两个配对得到 4 个叶子 \((u_0, u_4)\)、\((u_2, u_6)\)、\((u_1, u_5)\)、\((u_3, u_7)\)。每个叶子哈希后得到 \(h_0, h_1, h_2, h_3\)，不断两两哈希最终可以得到根节点哈希。</p>
+
+    <!-- ── 折叠 ── -->
+    <div class="sub-head"><span class="sub-idx">2.3</span><h3>折叠</h3></div>
+    <p>verifier 发送一个随机挑战数 \(r\)，prover 用 \(r\) 将当前长度为 \(N\) 的消息向量对半折叠为长度 \(N/2\) 的新消息。折叠规则是：将消息按下标奇偶拆成偶数位 \(\mathbf{a_E}\) 和奇数位 \(\mathbf{a_O}\)，然后逐位线性组合 \(\mathbf{b} = \mathbf{a_E} + r \cdot \mathbf{a_O}\)。与此同时，求值域 \(D_a\) 也对半缩小——取 \(D_a\) 中指数为偶数的元素构成新的乘法子群 \(D_b\)，大小恰好减半。</p>
+
+    <p>消息 \(\mathbf{a}\) 在 \(D_a\) 上编码得到码字 \(\mathbf{u}\)，折叠后的消息 \(\mathbf{b}\) 在 \(D_b\) 上编码得到码字 \(\mathbf{v}\)。码字 \(\mathbf{u}\) 与 \(\mathbf{v}\) 之间存在确定的关系：\(\mathbf{u}\) 的前半部分 \(u_j\) 与后半部分 \(u_{j+M/2}\) 通过下列公式直接计算出 \(v_j\)，其中 \(g\) 为 \(D_a\) 的生成元，\(M = |D_a|\)，\(j = 0, 1, \dots, M/2 - 1\)。</p>
+
+    <div class="math-block">\[v_j = \frac{1 + r \cdot g^{-j}}{2} \cdot u_j + \frac{1 - r \cdot g^{-j}}{2} \cdot u_{j+M/2}\]</div>
+
+    <!-- Fold triple SVG -->
+    <div class="diagram">
+      <svg viewBox="0 0 1020 165" width="1020" height="165">
+        <!-- Message fold (left) -->
+        <text class="tx-lbl" x="110" y="14">message fold</text>
+        <text class="tx" x="48" y="44">a₀</text>
+        <text class="tx" x="92" y="44">a₁</text>
+        <text class="tx" x="148" y="44">a₂</text>
+        <text class="tx" x="192" y="44">a₃</text>
+        <line class="ln-fold" x1="48" y1="56" x2="68" y2="100"/>
+        <line class="ln-fold" x1="92" y1="56" x2="68" y2="100"/>
+        <line class="ln-fold" x1="148" y1="56" x2="168" y2="100"/>
+        <line class="ln-fold" x1="192" y1="56" x2="168" y2="100"/>
+        <text class="tx-clay" x="118" y="82">fold r</text>
+        <text class="tx" x="68" y="118">b₀</text>
+        <text class="tx" x="168" y="118">b₁</text>
+        <text class="tx-s" x="118" y="150">b₀ = a₀ + r·a₁</text>
+
+        <!-- Divider -->
+        <line x1="235" y1="8" x2="235" y2="158" stroke="#E6E3DA" stroke-width="1"/>
+
+        <!-- Codeword fold (center) -->
+        <text class="tx-lbl" x="430" y="14">codeword fold (bit-reverse)</text>
+        <text class="tx-s" x="268" y="44">u₀</text>
+        <text class="tx-s" x="304" y="44">u₄</text>
+        <text class="tx-s" x="362" y="44">u₂</text>
+        <text class="tx-s" x="398" y="44">u₆</text>
+        <text class="tx-s" x="462" y="44">u₁</text>
+        <text class="tx-s" x="498" y="44">u₅</text>
+        <text class="tx-s" x="556" y="44">u₃</text>
+        <text class="tx-s" x="592" y="44">u₇</text>
+        <!-- fold lines -->
+        <line class="ln-fold" x1="268" y1="56" x2="286" y2="100"/>
+        <line class="ln-fold" x1="304" y1="56" x2="286" y2="100"/>
+        <line class="ln-fold" x1="362" y1="56" x2="380" y2="100"/>
+        <line class="ln-fold" x1="398" y1="56" x2="380" y2="100"/>
+        <line class="ln-fold" x1="462" y1="56" x2="480" y2="100"/>
+        <line class="ln-fold" x1="498" y1="56" x2="480" y2="100"/>
+        <line class="ln-fold" x1="556" y1="56" x2="574" y2="100"/>
+        <line class="ln-fold" x1="592" y1="56" x2="574" y2="100"/>
+        <text class="tx-clay" x="430" y="82">fold r</text>
+        <text class="tx-s" x="286" y="118">v₀</text>
+        <text class="tx-s" x="380" y="118">v₂</text>
+        <text class="tx-s" x="480" y="118">v₁</text>
+        <text class="tx-s" x="574" y="118">v₃</text>
+        <text class="tx-s" x="430" y="150">v₀ = (1+r·g⁰)/2·u₀ + (1−r·g⁰)/2·u₄</text>
+
+        <!-- Divider -->
+        <line x1="630" y1="8" x2="630" y2="158" stroke="#E6E3DA" stroke-width="1"/>
+
+        <!-- Domain half (right) -->
+        <text class="tx-lbl" x="820" y="14">D half</text>
+        <text class="tx-s" x="820" y="44">D<tspan dy="3" font-size="9">a</tspan><tspan dy="-3"> = {g⁰, g¹, g², g³, g⁴, g⁵, g⁶, g⁷}</tspan></text>
+        <line class="ln" x1="820" y1="58" x2="820" y2="92" marker-end="url(#ah)"/>
+        <text class="tx-lbl" x="798" y="78" text-anchor="end">half</text>
+        <text class="tx-s" x="820" y="118">D<tspan dy="3" font-size="9">b</tspan><tspan dy="-3"> = {g⁰,     g²,     g⁴,     g⁶}</tspan></text>
+      </svg>
+    </div>
+
+    <p><strong>例子</strong>：消息 \(\mathbf{a} = (a_0, a_1, a_2, a_3)\)，偶数位 \(\mathbf{a_E} = (a_0, a_2)\)，奇数位 \(\mathbf{a_O} = (a_1, a_3)\)，折叠后 \(\mathbf{b} = (a_0 + r \cdot a_1,\ a_2 + r \cdot a_3)\)。代入数值 \(\mathbf{a} = (2, 3, 5, 7)\)，\(r = 5\)，得到 \(\mathbf{b} = (2 + 5 \cdot 3,\ 5 + 5 \cdot 7) \equiv (0, 6) \pmod{17}\)。求值域同步缩小：\(D_a = \{g^0, g^1, \dots, g^7\} = \{1, 9, 13, 15, 16, 8, 4, 2\}\)，取偶数指数元素得到 \(D_b = \{g^0, g^2, g^4, g^6\} = \{1, 13, 16, 4\}\)，大小从 8 缩减为 4。</p>
+
+    <p>消息 \(\mathbf{a} = (2, 3, 5, 7)\) 在 \(D_a\) 上编码得到码字 \(\mathbf{u} = (0, 12, 13, 11, 14, 3, 15, 16)\)，折叠后消息 \(\mathbf{b} = (0, 6)\) 在 \(D_b\) 上编码得到码字 \(\mathbf{v} = (6, 10, 11, 7)\)。下列式子验证 \(v_0\) 满足折叠关系，类似地可以验证 \(v_1 = 10\)，\(v_2 = 11\)，\(v_3 = 7\)。</p>
+
+    <div class="math-block">\[v_0 = \frac{1 + r \cdot g^{0}}{2} \cdot u_0 + \frac{1 - r \cdot g^{0}}{2} \cdot u_4 = \frac{1+5}{2} \cdot 0 + \frac{1-5}{2} \cdot 14 \equiv 6 \pmod{17}\]</div>
+
+    <!-- ── 完整例子 ── -->
+    <div class="sub-head"><span class="sub-idx">2.4</span><h3>完整例子</h3></div>
+
+    <div class="step">
+      <strong>第 0 轮</strong>：prover 持有消息向量 \(\mathbf{a} = (2, 3, 5, 7)\)，在求值域 \(D_a = \{1, 9, 13, 15, 16, 8, 4, 2\}\) 上做 RS 编码得到码字 \(\mathbf{u} = (0, 12, 13, 11, 14, 3, 15, 16)\)，再对 \(\mathbf{u}\) 做 Merkle 承诺，将根 \(\text{root}_u\) 发送给 verifier。verifier 发送随机挑战 \(r = 5\)。
+    </div>
+
+    <div class="step">
+      <strong>第 1 轮</strong>：prover 用随机数 \(r = 5\) 将消息对半折叠——把系数按奇偶下标拆开，用 \(r\) 合并：\(b_0 = a_0 + r \cdot a_1 = 2 + 5 \cdot 3 \equiv 0\)，\(b_1 = a_2 + r \cdot a_3 = 5 + 5 \cdot 7 \equiv 6\)（\(\bmod\ 17\)），得到 \(\mathbf{b} = (0, 6)\)。在求值域 \(D_b = \{1, 13, 16, 4\}\) 上做 RS 编码得到码字 \(\mathbf{v} = (6, 10, 11, 7)\)，再对 \(\mathbf{v}\) 做 Merkle 承诺，将根 \(\text{root}_v\) 发送给 verifier。verifier 发送随机挑战 \(s = 3\)。
+    </div>
+
+    <div class="step">
+      <strong>第 2 轮</strong>：prover 用 \(s = 3\) 继续折叠：\(c_0 = b_0 + s \cdot b_1 = 0 + 3 \cdot 6 \equiv 1 \pmod{17}\)。\(c_0\) 对应常数多项式 \(h(X) = 1\)，在求值域 \(D_c = \{1, 16\}\) 上做 RS 编码得到码字 \(\mathbf{w} = (1, 1)\)，再对 \(\mathbf{w}\) 做 Merkle 承诺，将根 \(\text{root}_w\) 发送给 verifier，承诺阶段结束。
+    </div>
+
+    <!-- Complete example overview SVG -->
+    <div class="diagram">
+      <svg viewBox="0 0 1020 330" width="1020" height="330">
+        <!-- Layer labels -->
+        <text class="tx-layer" x="8" y="50">Layer 0</text>
+        <text class="tx-layer" x="8" y="165">Layer 1</text>
+        <text class="tx-layer" x="8" y="285">Layer 2</text>
+
+        <!-- ── Layer 0 ── -->
+        <rect class="nd" x="68" y="36" width="118" height="28" rx="7"/>
+        <text class="tx" x="90" y="50">2</text>
+        <text class="tx" x="110" y="50">3</text>
+        <text class="tx" x="132" y="50">5</text>
+        <text class="tx" x="155" y="50">7</text>
+
+        <line class="ln-dash" x1="198" y1="50" x2="438" y2="50" marker-end="url(#ah)"/>
+        <text class="tx-lbl" x="318" y="38">encode on {1,9,13,15,16,8,4,2}</text>
+
+        <rect class="nd" x="448" y="38" width="25" height="28" rx="4"/><text class="tx-s" x="460" y="50">0</text>
+        <rect class="nd" x="478" y="38" width="25" height="28" rx="4"/><text class="tx-s" x="490" y="50">14</text>
+        <rect class="nd" x="510" y="38" width="25" height="28" rx="4"/><text class="tx-s" x="522" y="50">13</text>
+        <rect class="nd" x="540" y="38" width="25" height="28" rx="4"/><text class="tx-s" x="552" y="50">15</text>
+        <rect class="nd" x="572" y="38" width="25" height="28" rx="4"/><text class="tx-s" x="584" y="50">12</text>
+        <rect class="nd" x="602" y="38" width="25" height="28" rx="4"/><text class="tx-s" x="614" y="50">3</text>
+        <rect class="nd" x="634" y="38" width="25" height="28" rx="4"/><text class="tx-s" x="646" y="50">11</text>
+        <rect class="nd" x="664" y="38" width="25" height="28" rx="4"/><text class="tx-s" x="676" y="50">16</text>
+
+        <line class="ln-dash" x1="698" y1="50" x2="820" y2="50" marker-end="url(#ah)"/>
+        <text class="tx-lbl" x="759" y="40">commit</text>
+        <rect class="nd-hl" x="830" y="38" width="62" height="28" rx="6"/>
+        <text class="tx" x="861" y="50">root<tspan dy="3" font-size="9">u</tspan><tspan dy="-3"> </tspan></text>
+
+        <!-- Fold lines L0 → L1 (message) -->
+        <line class="ln-fold" x1="90" y1="64" x2="102" y2="151"/>
+        <line class="ln-fold" x1="110" y1="64" x2="102" y2="151"/>
+        <line class="ln-fold" x1="132" y1="64" x2="148" y2="151"/>
+        <line class="ln-fold" x1="155" y1="64" x2="148" y2="151"/>
+
+        <!-- Fold lines L0 → L1 (codeword) -->
+        <line class="ln-fold" x1="460" y1="66" x2="472" y2="151"/>
+        <line class="ln-fold" x1="490" y1="66" x2="472" y2="151"/>
+        <line class="ln-fold" x1="522" y1="66" x2="534" y2="151"/>
+        <line class="ln-fold" x1="552" y1="66" x2="534" y2="151"/>
+        <line class="ln-fold" x1="584" y1="66" x2="598" y2="151"/>
+        <line class="ln-fold" x1="614" y1="66" x2="598" y2="151"/>
+        <line class="ln-fold" x1="646" y1="66" x2="660" y2="151"/>
+        <line class="ln-fold" x1="676" y1="66" x2="660" y2="151"/>
+
+        <text class="tx-clay" x="750" y="108">fold r=5</text>
+
+        <!-- Domain half -->
+        <line class="ln" x1="358" y1="68" x2="358" y2="148" marker-end="url(#ah)"/>
+        <text class="tx-lbl" x="340" y="108" text-anchor="end">half</text>
+
+        <!-- ── Layer 1 ── -->
+        <rect class="nd" x="82" y="151" width="86" height="28" rx="7"/>
+        <text class="tx" x="105" y="165">0</text>
+        <text class="tx" x="148" y="165">6</text>
+
+        <line class="ln-dash" x1="198" y1="165" x2="438" y2="165" marker-end="url(#ah)"/>
+        <text class="tx-lbl" x="318" y="153">encode on {1,13,16,4}</text>
+
+        <rect class="nd" x="459" y="153" width="25" height="28" rx="4"/><text class="tx-s" x="471" y="165">6</text>
+        <rect class="nd" x="521" y="153" width="25" height="28" rx="4"/><text class="tx-s" x="533" y="165">11</text>
+        <rect class="nd" x="585" y="153" width="25" height="28" rx="4"/><text class="tx-s" x="597" y="165">10</text>
+        <rect class="nd" x="647" y="153" width="25" height="28" rx="4"/><text class="tx-s" x="659" y="165">7</text>
+
+        <line class="ln-dash" x1="698" y1="165" x2="820" y2="165" marker-end="url(#ah)"/>
+        <text class="tx-lbl" x="759" y="155">commit</text>
+        <rect class="nd-hl" x="830" y="153" width="62" height="28" rx="6"/>
+        <text class="tx" x="861" y="165">root<tspan dy="3" font-size="9">v</tspan><tspan dy="-3"> </tspan></text>
+
+        <!-- Fold lines L1 → L2 (message) -->
+        <line class="ln-fold" x1="105" y1="179" x2="126" y2="271"/>
+        <line class="ln-fold" x1="148" y1="179" x2="126" y2="271"/>
+
+        <!-- Fold lines L1 → L2 (codeword) -->
+        <line class="ln-fold" x1="471" y1="181" x2="503" y2="271"/>
+        <line class="ln-fold" x1="533" y1="181" x2="503" y2="271"/>
+        <line class="ln-fold" x1="597" y1="181" x2="630" y2="271"/>
+        <line class="ln-fold" x1="659" y1="181" x2="630" y2="271"/>
+
+        <text class="tx-clay" x="750" y="228">fold s=3</text>
+
+        <line class="ln" x1="358" y1="183" x2="358" y2="263" marker-end="url(#ah)"/>
+        <text class="tx-lbl" x="340" y="223" text-anchor="end">half</text>
+
+        <!-- ── Layer 2 ── -->
+        <rect class="nd" x="105" y="271" width="44" height="28" rx="7"/>
+        <text class="tx" x="126" y="285">1</text>
+
+        <line class="ln-dash" x1="198" y1="285" x2="438" y2="285" marker-end="url(#ah)"/>
+        <text class="tx-lbl" x="318" y="273">encode on {1,16}</text>
+
+        <rect class="nd" x="490" y="273" width="25" height="28" rx="4"/><text class="tx-s" x="502" y="285">1</text>
+        <rect class="nd" x="618" y="273" width="25" height="28" rx="4"/><text class="tx-s" x="630" y="285">1</text>
+
+        <line class="ln-dash" x1="698" y1="285" x2="820" y2="285" marker-end="url(#ah)"/>
+        <text class="tx-lbl" x="759" y="275">commit</text>
+        <rect class="nd-hl" x="830" y="273" width="62" height="28" rx="6"/>
+        <text class="tx" x="861" y="285">root<tspan dy="3" font-size="9">w</tspan><tspan dy="-3"> </tspan></text>
+      </svg>
+    </div>
+
+    <!-- Complete example Merkle trees -->
+    <div class="diagram">
+      <svg viewBox="0 0 780 195" width="780" height="195">
+        <!-- Tree 1: root_u with real values -->
+        <rect class="nd-hl" x="127" y="8" width="60" height="26" rx="6"/>
+        <text class="tx" x="157" y="19">root<tspan dy="3" font-size="9">u</tspan><tspan dy="-3"> </tspan></text>
+        <line class="ln" x1="142" y1="34" x2="78" y2="55"/>
+        <line class="ln" x1="172" y1="34" x2="237" y2="55"/>
+        <rect class="nd" x="58" y="55" width="40" height="26" rx="5"/>
+        <text class="tx-s" x="78" y="66">H₀</text>
+        <rect class="nd" x="217" y="55" width="40" height="26" rx="5"/>
+        <text class="tx-s" x="237" y="66">H₁</text>
+        <line class="ln" x1="68" y1="81" x2="38" y2="102"/>
+        <line class="ln" x1="88" y1="81" x2="118" y2="102"/>
+        <line class="ln" x1="227" y1="81" x2="197" y2="102"/>
+        <line class="ln" x1="247" y1="81" x2="277" y2="102"/>
+        <rect class="nd" x="20" y="102" width="36" height="26" rx="5"/>
+        <text class="tx-s" x="38" y="113">h₀</text>
+        <rect class="nd" x="100" y="102" width="36" height="26" rx="5"/>
+        <text class="tx-s" x="118" y="113">h₁</text>
+        <rect class="nd" x="179" y="102" width="36" height="26" rx="5"/>
+        <text class="tx-s" x="197" y="113">h₂</text>
+        <rect class="nd" x="259" y="102" width="36" height="26" rx="5"/>
+        <text class="tx-s" x="277" y="113">h₃</text>
+        <line class="ln-dash" x1="38" y1="128" x2="38" y2="145"/>
+        <line class="ln-dash" x1="118" y1="128" x2="118" y2="145"/>
+        <line class="ln-dash" x1="197" y1="128" x2="197" y2="145"/>
+        <line class="ln-dash" x1="277" y1="128" x2="277" y2="145"/>
+        <rect class="nd" x="12" y="145" width="52" height="26" rx="5"/>
+        <text class="tx-s" x="38" y="156">0,14</text>
+        <rect class="nd" x="92" y="145" width="52" height="26" rx="5"/>
+        <text class="tx-s" x="118" y="156">13,15</text>
+        <rect class="nd" x="172" y="145" width="50" height="26" rx="5"/>
+        <text class="tx-s" x="197" y="156">12,3</text>
+        <rect class="nd" x="252" y="145" width="50" height="26" rx="5"/>
+        <text class="tx-s" x="277" y="156">11,16</text>
+
+        <!-- Tree 2: root_v -->
+        <rect class="nd-hl" x="420" y="8" width="60" height="26" rx="6"/>
+        <text class="tx" x="450" y="19">root<tspan dy="3" font-size="9">v</tspan><tspan dy="-3"> </tspan></text>
+        <line class="ln" x1="435" y1="34" x2="405" y2="55"/>
+        <line class="ln" x1="465" y1="34" x2="495" y2="55"/>
+        <rect class="nd" x="377" y="55" width="56" height="26" rx="5"/>
+        <text class="tx-s" x="405" y="66">h₀</text>
+        <rect class="nd" x="467" y="55" width="56" height="26" rx="5"/>
+        <text class="tx-s" x="495" y="66">h₁</text>
+        <line class="ln-dash" x1="405" y1="81" x2="405" y2="102"/>
+        <line class="ln-dash" x1="495" y1="81" x2="495" y2="102"/>
+        <rect class="nd" x="377" y="102" width="56" height="26" rx="5"/>
+        <text class="tx-s" x="405" y="113">6,11</text>
+        <rect class="nd" x="467" y="102" width="56" height="26" rx="5"/>
+        <text class="tx-s" x="495" y="113">10,7</text>
+
+        <!-- Tree 3: root_w -->
+        <rect class="nd-hl" x="630" y="8" width="60" height="26" rx="6"/>
+        <text class="tx" x="660" y="19">root<tspan dy="3" font-size="9">w</tspan><tspan dy="-3"> </tspan></text>
+        <line class="ln-dash" x1="660" y1="34" x2="660" y2="55"/>
+        <rect class="nd" x="630" y="55" width="60" height="26" rx="5"/>
+        <text class="tx-s" x="660" y="66">1,1</text>
+      </svg>
+    </div>
+
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <!-- SECTION 03 : 查询阶段                                            -->
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section id="query">
+    <div class="sec-head"><span class="idx">03</span><h2>查询阶段</h2></div>
+
+    <p>承诺阶段结束后，verifier 随机选一个位置，从最外层码字开始，逐轮检查相邻两层码字在该位置是否满足折叠关系。重复足够多次后，即可高概率确信 prover 没有作弊。</p>
+    <p>假设 verifier 随机抽到了位置 \(i=0\)，下面逐轮演示检查过程。</p>
+
+    <!-- Query tree SVG -->
+    <div class="diagram">
+      <svg viewBox="0 0 680 210" width="680" height="210">
+        <!-- L0 codeword elements -->
+        <rect class="nd-hl" x="20" y="10" width="32" height="28" rx="5"/><text class="tx-s" x="36" y="22">u₀</text>
+        <rect class="nd-hl" x="72" y="10" width="32" height="28" rx="5"/><text class="tx-s" x="88" y="22">u₄</text>
+        <rect class="nd" x="140" y="10" width="32" height="28" rx="5"/><text class="tx-s" x="156" y="22">u₂</text>
+        <rect class="nd" x="192" y="10" width="32" height="28" rx="5"/><text class="tx-s" x="208" y="22">u₆</text>
+        <rect class="nd" x="260" y="10" width="32" height="28" rx="5"/><text class="tx-s" x="276" y="22">u₁</text>
+        <rect class="nd" x="312" y="10" width="32" height="28" rx="5"/><text class="tx-s" x="328" y="22">u₅</text>
+        <rect class="nd" x="380" y="10" width="32" height="28" rx="5"/><text class="tx-s" x="396" y="22">u₃</text>
+        <rect class="nd" x="432" y="10" width="32" height="28" rx="5"/><text class="tx-s" x="448" y="22">u₇</text>
+
+        <!-- Fold lines L0 → L1 -->
+        <line class="ln-fold" x1="36" y1="38" x2="62" y2="80"/>
+        <line class="ln-fold" x1="88" y1="38" x2="62" y2="80"/>
+        <line class="ln" x1="156" y1="38" x2="176" y2="80" opacity=".5"/>
+        <line class="ln" x1="208" y1="38" x2="176" y2="80" opacity=".5"/>
+        <line class="ln" x1="276" y1="38" x2="296" y2="80" opacity=".5"/>
+        <line class="ln" x1="328" y1="38" x2="296" y2="80" opacity=".5"/>
+        <line class="ln" x1="396" y1="38" x2="416" y2="80" opacity=".5"/>
+        <line class="ln" x1="448" y1="38" x2="416" y2="80" opacity=".5"/>
+
+        <text class="tx-clay" x="510" y="58">fold r</text>
+
+        <!-- L1 elements -->
+        <rect class="nd-hl" x="46" y="80" width="32" height="28" rx="5"/><text class="tx-s" x="62" y="92">v₀</text>
+        <rect class="nd-hl" x="160" y="80" width="32" height="28" rx="5"/><text class="tx-s" x="176" y="92">v₂</text>
+        <rect class="nd" x="280" y="80" width="32" height="28" rx="5"/><text class="tx-s" x="296" y="92">v₁</text>
+        <rect class="nd" x="400" y="80" width="32" height="28" rx="5"/><text class="tx-s" x="416" y="92">v₃</text>
+
+        <!-- Fold lines L1 → L2 -->
+        <line class="ln-fold" x1="62" y1="108" x2="120" y2="160"/>
+        <line class="ln-fold" x1="176" y1="108" x2="120" y2="160"/>
+        <line class="ln" x1="296" y1="108" x2="355" y2="160" opacity=".5"/>
+        <line class="ln" x1="416" y1="108" x2="355" y2="160" opacity=".5"/>
+
+        <text class="tx-clay" x="510" y="138">fold s</text>
+
+        <!-- L2 elements -->
+        <rect class="nd" x="104" y="160" width="32" height="28" rx="5"/><text class="tx-s" x="120" y="172">w₀</text>
+        <rect class="nd" x="339" y="160" width="32" height="28" rx="5"/><text class="tx-s" x="355" y="172">w₁</text>
+      </svg>
+    </div>
+
+    <div class="step">
+      <strong>第 0 轮→第 1 轮的检查</strong>：prover 发送 \(u_0 = 0\) 和 \(u_4 = 14\)，并提供它们的 Merkle 证明。verifier 验证 Merkle 证明通过后，利用码字折叠公式计算期望的 \(\hat{v}_0\)，其中 \(g = 9\) 为求值域 \(D_a\) 的生成元：
+    </div>
+
+    <div class="math-block">\[\hat{v}_0 = \frac{1 + rg^0}{2} \cdot u_0 + \frac{1 - rg^0}{2} \cdot u_4 = \frac{1+5}{2} \cdot 0 + \frac{1-5}{2} \cdot 14 \equiv 6 \pmod{17}\]</div>
+
+    <div class="step">
+      <strong>第 1 轮→第 2 轮的检查</strong>：prover 发送 \(v_0 = 6\) 和 \(v_2 = 11\)，并提供它们的 Merkle 证明。verifier 验证 Merkle 证明后，先检查 \(v_0 = \hat{v}_0 = 6\) <span class="check">✓</span>，确认第 0 层到第 1 层的折叠一致。然后计算期望的 \(w_0\)，其中 \(\hat{g} = 13\) 为求值域 \(D_b\) 的生成元：
+    </div>
+
+    <div class="math-block">\[w_0 = \frac{1 + s\hat{g}^0}{2} \cdot v_0 + \frac{1 - s\hat{g}^0}{2} \cdot v_2 = \frac{1+3}{2} \cdot 6 + \frac{1-3}{2} \cdot 11 \equiv 1 \pmod{17}\]</div>
+
+    <!-- Merkle proof SVG for root_v -->
+    <div class="diagram">
+      <svg viewBox="0 0 280 130" width="280" height="130">
+        <rect class="nd-hl" x="110" y="6" width="56" height="26" rx="6"/>
+        <text class="tx-s" x="138" y="17">root<tspan dy="3" font-size="9">v</tspan><tspan dy="-3"> </tspan></text>
+        <line class="ln" x1="125" y1="32" x2="70" y2="50"/>
+        <line class="ln" x1="151" y1="32" x2="206" y2="50"/>
+        <rect class="nd" x="42" y="50" width="56" height="26" rx="5"/>
+        <text class="tx-s" x="70" y="61">h₀</text>
+        <rect class="nd-hl2" x="178" y="50" width="56" height="26" rx="5"/>
+        <text class="tx-s" x="206" y="61">h₁</text>
+        <line class="ln-dash" x1="70" y1="76" x2="70" y2="92"/>
+        <rect class="nd-hl" x="30" y="92" width="80" height="26" rx="5"/>
+        <text class="tx-s" x="70" y="103">v₀, v₂</text>
+      </svg>
+    </div>
+
+    <div class="step">
+      <strong>最后一轮的检查</strong>：verifier 使用 \(w_0 = 1\) 重构 \(\hat{\text{root}}_w = \text{Hash}(1, 1)\)，与承诺阶段收到的 \(\text{root}_w\) 比对，确认一致即可。<span class="check">✓</span>
+    </div>
+
+    <div class="diagram">
+      <svg viewBox="0 0 160 76" width="160" height="76">
+        <rect class="nd-hl" x="50" y="6" width="56" height="26" rx="6"/>
+        <text class="tx-s" x="78" y="17">root<tspan dy="3" font-size="9">w</tspan><tspan dy="-3"> </tspan></text>
+        <line class="ln-dash" x1="78" y1="32" x2="78" y2="44"/>
+        <rect class="nd" x="38" y="44" width="80" height="26" rx="5"/>
+        <text class="tx-s" x="78" y="55">w₀, w₁</text>
+      </svg>
+    </div>
+
+  </section>
+
+  <footer>
+    FRI 协议详解
+  </footer>
+
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '\\[', right: '\\]', display: true},
+      {left: '\\(', right: '\\)', display: false}
+    ],
+    throwOnError: false
+  });"></script>
+</body>
+</html>
