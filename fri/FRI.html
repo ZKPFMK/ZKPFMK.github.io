@@ -836,6 +836,44 @@
 
     <div class="math-block">\[\hat{v}_0 = \frac{1 + rg^0}{2} \cdot u_0 + \frac{1 - rg^0}{2} \cdot u_4 = \frac{1+5}{2} \cdot 0 + \frac{1-5}{2} \cdot 14 \equiv 6 \pmod{17}\]</div>
 
+    <!-- Merkle proof SVG for root_u -->
+    <div class="diagram">
+      <svg viewBox="0 0 380 190" width="380" height="190">
+        <rect class="nd-hl" x="157" y="6" width="60" height="26" rx="6"/>
+        <text class="tx" x="187" y="17">root<tspan dy="3" font-size="9">u</tspan><tspan dy="-3"> </tspan></text>
+        <line class="ln" x1="172" y1="32" x2="95" y2="50"/>
+        <line class="ln" x1="202" y1="32" x2="280" y2="50"/>
+        <rect class="nd" x="70" y="50" width="50" height="26" rx="5"/>
+        <text class="tx-s" x="95" y="61">H₀</text>
+        <rect class="nd-hl2" x="255" y="50" width="50" height="26" rx="5"/>
+        <text class="tx-s" x="280" y="61">H₁</text>
+        <line class="ln" x1="82" y1="76" x2="47" y2="95"/>
+        <line class="ln" x1="108" y1="76" x2="143" y2="95"/>
+        <line class="ln" x1="267" y1="76" x2="232" y2="95"/>
+        <line class="ln" x1="293" y1="76" x2="328" y2="95"/>
+        <rect class="nd" x="25" y="95" width="44" height="26" rx="5"/>
+        <text class="tx-s" x="47" y="106">h₀</text>
+        <rect class="nd-hl2" x="121" y="95" width="44" height="26" rx="5"/>
+        <text class="tx-s" x="143" y="106">h₁</text>
+        <rect class="nd" x="210" y="95" width="44" height="26" rx="5"/>
+        <text class="tx-s" x="232" y="106">h₂</text>
+        <rect class="nd" x="306" y="95" width="44" height="26" rx="5"/>
+        <text class="tx-s" x="328" y="106">h₃</text>
+        <line class="ln-dash" x1="47" y1="121" x2="47" y2="140"/>
+        <line class="ln-dash" x1="143" y1="121" x2="143" y2="140"/>
+        <line class="ln-dash" x1="232" y1="121" x2="232" y2="140"/>
+        <line class="ln-dash" x1="328" y1="121" x2="328" y2="140"/>
+        <rect class="nd-hl" x="7" y="140" width="80" height="26" rx="5"/>
+        <text class="tx-s" x="47" y="151">u₀, u₄</text>
+        <rect class="nd" x="111" y="140" width="64" height="26" rx="5"/>
+        <text class="tx-s" x="143" y="151">u₂,u₆</text>
+        <rect class="nd" x="200" y="140" width="64" height="26" rx="5"/>
+        <text class="tx-s" x="232" y="151">u₁,u₅</text>
+        <rect class="nd" x="296" y="140" width="64" height="26" rx="5"/>
+        <text class="tx-s" x="328" y="151">u₃,u₇</text>
+      </svg>
+    </div>
+
     <div class="step">
       <strong>第 1 轮→第 2 轮的检查</strong>：prover 发送 \(v_0 = 6\) 和 \(v_2 = 11\)，并提供它们的 Merkle 证明。verifier 验证 Merkle 证明后，先检查 \(v_0 = \hat{v}_0 = 6\) <span class="check">✓</span>，确认第 0 层到第 1 层的折叠一致。然后计算期望的 \(w_0\)，其中 \(\hat{g} = 13\) 为求值域 \(D_b\) 的生成元：
     </div>
