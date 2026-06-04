@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Basefold 协议详解 2 · v6</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+<style>
+  :root {
+    --ivory:  #FAF9F5;
+    --paper:  #FFFFFF;
+    --slate:  #141413;
+    --clay:   #D97757;
+    --clay-d: #B85C3E;
+    --oat:    #E3DACC;
+    --olive:  #788C5D;
+    --g100:   #F0EEE6;
+    --g200:   #E6E3DA;
+    --g300:   #A8A69E;
+    --g500:   #5C5B56;
+    --g700:   #3D3D3A;
+    --serif: ui-serif, Georgia, "Times New Roman", Times, serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--ivory);
+    color: var(--slate);
+    font-family: var(--sans);
+    line-height: 1.72;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 28px 120px; }
+
+  /* ── masthead ───────────────────── */
+  header.masthead {
+    padding: 72px 0 44px;
+    border-bottom: 1.5px solid var(--g300);
+    margin-bottom: 12px;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--g500);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 22px; height: 1.5px;
+    background: var(--clay);
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(34px, 5vw, 52px);
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+    margin: 0 0 10px;
+  }
+  h1 em { font-style: italic; color: var(--clay); }
+  .intro {
+    font-size: 19px;
+    color: var(--g700);
+    margin: 14px 0 0;
+    max-width: 600px;
+    line-height: 1.72;
+  }
+
+  /* ── toc pills ─────────────────── */
+  nav.toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 22px 0 0;
+  }
+  nav.toc a {
+    font-size: 13px;
+    padding: 6px 14px;
+    border: 1.5px solid var(--g300);
+    border-radius: 999px;
+    text-decoration: none;
+    color: var(--g700);
+    background: var(--paper);
+    transition: border-color 120ms, color 120ms;
+  }
+  nav.toc a:hover { border-color: var(--slate); color: var(--slate); }
+
+  /* ── sections ──────────────────── */
+  section { margin-top: 36px; scroll-margin-top: 28px; }
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .sec-head .idx {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--clay);
+    font-weight: 600;
+    width: 30px;
+    flex-shrink: 0;
+  }
+  .sec-head h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 27px;
+    letter-spacing: -0.01em;
+  }
+  h3 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 21px;
+    margin: 44px 0 12px 44px;
+    color: var(--slate);
+  }
+  .sub-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 36px 0 12px 44px;
+  }
+  .sub-head .sub-idx {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--clay);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .sub-head h3 { margin: 0; }
+  .subsub-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 24px 0 8px 44px;
+  }
+  .subsub-head .subsub-idx {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--g500);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .subsub-head h4 { margin: 0; font-size: 18px; }
+  a { color: var(--clay); text-decoration: none; border-bottom: 1.5px solid var(--g300); transition: border-color .2s; }
+  a:hover { border-color: var(--clay); }
+  p { margin: 12px 0; padding-left: 44px; font-size: 19px; line-height: 1.78; }
+  ol, ul { padding-left: 68px; margin: 14px 0; }
+  li { margin: 6px 0; font-size: 19px; line-height: 1.72; }
+
+  /* ── math block ────────────────── */
+  .math-block {
+    margin: 18px 0 18px 44px;
+    padding: 14px 22px;
+    background: var(--g100);
+    border-radius: 10px;
+    overflow-x: auto;
+    font-size: 19px;
+    line-height: 2;
+  }
+
+  /* ── step card ─────────────────── */
+  .step {
+    margin: 16px 0 16px 44px;
+    padding: 14px 18px;
+    background: var(--paper);
+    border-left: 3px solid var(--clay);
+    border-radius: 0 10px 10px 0;
+    font-size: 19px;
+    line-height: 1.78;
+  }
+  .step strong { color: var(--clay-d); }
+  .step-prover {
+    margin: 16px 0 4px 44px;
+    padding: 14px 18px;
+    background: #FCEEE4;
+    border-left: 3px solid var(--clay);
+    border-radius: 0 10px 10px 0;
+    font-size: 19px;
+    line-height: 1.78;
+  }
+  .step-prover strong { color: var(--clay-d); }
+  .step-verifier {
+    margin: 4px 0 16px 44px;
+    padding: 14px 18px;
+    background: #E4EEFA;
+    border-left: 3px solid var(--olive);
+    border-radius: 0 10px 10px 0;
+    font-size: 19px;
+    line-height: 1.78;
+  }
+  .step-verifier strong { color: var(--olive); }
+
+  /* ── diagram card ──────────────── */
+  .diagram {
+    margin: 24px 0 24px 44px;
+    padding: 12px 6px;
+    background: var(--paper);
+    border: 1.5px solid var(--g300);
+    border-radius: 12px;
+    overflow-x: auto;
+  }
+  .diagram pre {
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 12px 18px;
+    margin: 0;
+    white-space: pre;
+  }
+
+  /* ── table ─────────────────────── */
+  table {
+    margin: 24px 0 24px 44px;
+    border-collapse: collapse;
+    font-size: 17px;
+  }
+  th, td {
+    padding: 10px 16px;
+    border: 1px solid var(--g300);
+    text-align: left;
+  }
+  th {
+    background: var(--g100);
+    font-weight: 600;
+  }
+
+  /* ── SVG common ────────────────── */
+  svg .nd { fill: var(--paper); stroke: var(--g300); stroke-width: 1.4; }
+  svg .nd-hl { fill: #FFF3ED; stroke: var(--clay); stroke-width: 1.4; }
+  svg .nd-hl2 { fill: var(--oat); stroke: var(--g500); stroke-width: 1.4; }
+  svg .ln { stroke: var(--g500); stroke-width: 1.3; fill: none; }
+  svg .ln-fold { stroke: var(--clay); stroke-width: 1.2; fill: none; opacity: .75; }
+  svg .ln-dash { stroke: var(--g500); stroke-width: 1.2; fill: none; stroke-dasharray: 5 3; }
+  svg .tx { font-family: var(--mono); font-size: 14px; fill: var(--slate); text-anchor: middle; dominant-baseline: central; }
+  svg .tx-s { font-family: var(--mono); font-size: 13px; fill: var(--slate); text-anchor: middle; dominant-baseline: central; }
+  svg .tx-lbl { font-family: var(--sans); font-size: 13px; fill: var(--g700); text-anchor: middle; dominant-baseline: central; }
+  svg .tx-clay { font-family: var(--sans); font-size: 14px; fill: var(--clay); text-anchor: middle; dominant-baseline: central; font-style: italic; }
+  svg .tx-layer { font-family: var(--sans); font-size: 13px; fill: var(--g700); dominant-baseline: central; }
+
+  /* ── check mark ────────────────── */
+  .check { color: var(--olive); font-weight: 600; }
+
+  /* ── footer ────────────────────── */
+  footer {
+    margin-top: 80px;
+    border-top: 1.5px solid var(--g300);
+    padding-top: 28px;
+    font-size: 12px;
+    color: var(--g500);
+    text-align: center;
+    font-family: var(--serif);
+    font-style: italic;
+  }
+
+  @media (max-width: 600px) {
+    p, .math-block, .step, h3 { padding-left: 0; margin-left: 0; }
+    ol, ul { padding-left: 24px; }
+    .sec-head .idx { display: none; }
+    table { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ====== HEADER ====== -->
+  <header class="masthead">
+    <div class="eyebrow">Technical Blog · Cryptography · v6 本仓库实现</div>
+    <h1>Basefold <em>协议</em>详解 2 · v6</h1>
+    <p class="intro">
+      多列与多轮承诺 —— 用随机数把"多个多项式"线性组合成"单列"，之后完全复用第一篇的 BaseFold 流程。
+    </p>
+    <nav class="toc">
+      <a href="#background">问题背景</a>
+      <a href="#batch">多列 batching</a>
+    </nav>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <!-- SECTION 01 : 问题背景                                            -->
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section id="background">
+    <div class="sec-head"><span class="idx">01</span><h2>问题背景</h2></div>
+
+    <p>
+      <a href="basefold_v6.html">第一篇</a>讲了<strong>单个 MLE</strong> 情况下 BaseFold 如何工作；本节讲<strong>多个 MLE</strong> 情况下 BaseFold 如何工作。给定一个矩阵的 MMCS 承诺，把矩阵的每一列视为一个 MLE，如何证明这些 MLE 在相同点的打开？
+    </p>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <!-- SECTION 02 : 多列 batching                                       -->
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <section id="batch">
+    <div class="sec-head"><span class="idx">02</span><h2>矩阵承诺的打开</h2></div>
+
+    <p>
+      给定一个 \(4 \times 2\) 矩阵的码字的 MMCS 承诺，把每一列都视为一个 2 变量的 MLE，如何证明这两个 MLE 在相同点处的打开？BaseFold 的做法是：Verifier 发一个随机数，Prover 用它把 2 列线性组合成 1 列，之后按单列流程走完。
+    </p>
+
+    <!-- 上: 中=消息a, 左=码字c, 右=折叠消息b+码字u; 下: 左=c的树, 右=u的树 -->
+    <div class="diagram">
+      <svg viewBox="0 0 860 520" width="860" height="520">
+        <defs>
+          <marker id="ahm" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#5C5B56"></polygon>
+          </marker>
+        </defs>
+
+        <!-- ═══════════════ 上半区 ═══════════════ -->
+
+        <!-- 中间: 消息 a (4×2) -->
+        <text class="tx-lbl" x="430" y="22">消息 a (4×2)</text>
+        <rect class="nd" x="406" y="32" width="26" height="22" rx="4"/><text class="tx-s" x="419" y="43">a₀₀</text>
+        <rect class="nd" x="434" y="32" width="26" height="22" rx="4"/><text class="tx-s" x="447" y="43">a₀₁</text>
+        <rect class="nd" x="406" y="56" width="26" height="22" rx="4"/><text class="tx-s" x="419" y="67">a₁₀</text>
+        <rect class="nd" x="434" y="56" width="26" height="22" rx="4"/><text class="tx-s" x="447" y="67">a₁₁</text>
+        <rect class="nd" x="406" y="80" width="26" height="22" rx="4"/><text class="tx-s" x="419" y="91">a₂₀</text>
+        <rect class="nd" x="434" y="80" width="26" height="22" rx="4"/><text class="tx-s" x="447" y="91">a₂₁</text>
+        <rect class="nd" x="406" y="104" width="26" height="22" rx="4"/><text class="tx-s" x="419" y="115">a₃₀</text>
+        <rect class="nd" x="434" y="104" width="26" height="22" rx="4"/><text class="tx-s" x="447" y="115">a₃₁</text>
+
+        <!-- a -> 左: 编码成码字 c -->
+        <line class="ln-dash" x1="404" y1="78" x2="318" y2="78" marker-end="url(#ahm)"/>
+        <text class="tx-lbl" x="360" y="68">编码</text>
+
+        <!-- 左: 码字 c (8×2) -->
+        <text class="tx-lbl" x="250" y="22">码字 c (8×2)</text>
+        <rect class="nd" x="222" y="32" width="26" height="20" rx="4"/><text class="tx-s" x="235" y="42">c₀₀</text>
+        <rect class="nd" x="250" y="32" width="26" height="20" rx="4"/><text class="tx-s" x="263" y="42">c₀₁</text>
+        <rect class="nd" x="222" y="54" width="26" height="20" rx="4"/><text class="tx-s" x="235" y="64">c₁₀</text>
+        <rect class="nd" x="250" y="54" width="26" height="20" rx="4"/><text class="tx-s" x="263" y="64">c₁₁</text>
+        <rect class="nd" x="222" y="76" width="26" height="20" rx="4"/><text class="tx-s" x="235" y="86">c₂₀</text>
+        <rect class="nd" x="250" y="76" width="26" height="20" rx="4"/><text class="tx-s" x="263" y="86">c₂₁</text>
+        <rect class="nd" x="222" y="98" width="26" height="20" rx="4"/><text class="tx-s" x="235" y="108">c₃₀</text>
+        <rect class="nd" x="250" y="98" width="26" height="20" rx="4"/><text class="tx-s" x="263" y="108">c₃₁</text>
+        <rect class="nd" x="222" y="120" width="26" height="20" rx="4"/><text class="tx-s" x="235" y="130">c₄₀</text>
+        <rect class="nd" x="250" y="120" width="26" height="20" rx="4"/><text class="tx-s" x="263" y="130">c₄₁</text>
+        <rect class="nd" x="222" y="142" width="26" height="20" rx="4"/><text class="tx-s" x="235" y="152">c₅₀</text>
+        <rect class="nd" x="250" y="142" width="26" height="20" rx="4"/><text class="tx-s" x="263" y="152">c₅₁</text>
+        <rect class="nd" x="222" y="164" width="26" height="20" rx="4"/><text class="tx-s" x="235" y="174">c₆₀</text>
+        <rect class="nd" x="250" y="164" width="26" height="20" rx="4"/><text class="tx-s" x="263" y="174">c₆₁</text>
+        <rect class="nd" x="222" y="186" width="26" height="20" rx="4"/><text class="tx-s" x="235" y="196">c₇₀</text>
+        <rect class="nd" x="250" y="186" width="26" height="20" rx="4"/><text class="tx-s" x="263" y="196">c₇₁</text>
+
+        <!-- a -> 右: 折叠成消息 b -->
+        <line class="ln-dash" x1="462" y1="78" x2="548" y2="78" marker-end="url(#ahm)"/>
+        <text class="tx-clay" x="505" y="68">折叠</text>
+
+        <!-- 右: 折叠后消息 b (4×1) -->
+        <text class="tx-lbl" x="572" y="22">消息 b (4×1)</text>
+        <rect class="nd-hl" x="558" y="32" width="28" height="22" rx="4"/><text class="tx-s" x="572" y="43">b₀</text>
+        <rect class="nd-hl" x="558" y="56" width="28" height="22" rx="4"/><text class="tx-s" x="572" y="67">b₁</text>
+        <rect class="nd-hl" x="558" y="80" width="28" height="22" rx="4"/><text class="tx-s" x="572" y="91">b₂</text>
+        <rect class="nd-hl" x="558" y="104" width="28" height="22" rx="4"/><text class="tx-s" x="572" y="115">b₃</text>
+
+        <!-- b -> 编码成码字 u -->
+        <line class="ln-dash" x1="588" y1="78" x2="636" y2="78" marker-end="url(#ahm)"/>
+        <text class="tx-lbl" x="612" y="68">编码</text>
+
+        <!-- 右: 码字 u (8×1) -->
+        <text class="tx-lbl" x="664" y="22">码字 u (8×1)</text>
+        <rect class="nd-hl" x="650" y="32" width="28" height="20" rx="4"/><text class="tx-s" x="664" y="42">u₀</text>
+        <rect class="nd-hl" x="650" y="54" width="28" height="20" rx="4"/><text class="tx-s" x="664" y="64">u₁</text>
+        <rect class="nd-hl" x="650" y="76" width="28" height="20" rx="4"/><text class="tx-s" x="664" y="86">u₂</text>
+        <rect class="nd-hl" x="650" y="98" width="28" height="20" rx="4"/><text class="tx-s" x="664" y="108">u₃</text>
+        <rect class="nd-hl" x="650" y="120" width="28" height="20" rx="4"/><text class="tx-s" x="664" y="130">u₄</text>
+        <rect class="nd-hl" x="650" y="142" width="28" height="20" rx="4"/><text class="tx-s" x="664" y="152">u₅</text>
+        <rect class="nd-hl" x="650" y="164" width="28" height="20" rx="4"/><text class="tx-s" x="664" y="174">u₆</text>
+        <rect class="nd-hl" x="650" y="186" width="28" height="20" rx="4"/><text class="tx-s" x="664" y="196">u₇</text>
+
+        <!-- 码字 c -> 码字 u: 折叠 (RS 线性, 与 a->b->u 等价) -->
+        <path class="ln-dash" d="M 280,132 C 410,212 530,212 646,132" fill="none" marker-end="url(#ahm)"/>
+        <text class="tx-clay" x="463" y="206">折叠</text>
+
+        <!-- 上下分隔 -->
+        <line x1="20" y1="226" x2="840" y2="226" stroke="#E6E3DA" stroke-width="1"/>
+        <!-- 承诺箭头: 码字 c -> 下方 c 树 -->
+        <line class="ln-dash" x1="249" y1="208" x2="249" y2="248" marker-end="url(#ahm)"/>
+        <text class="tx-lbl" x="300" y="238">MMCS 承诺</text>
+        <!-- 承诺箭头: 码字 u -> 下方 u 树 -->
+        <line class="ln-dash" x1="664" y1="208" x2="664" y2="248" marker-end="url(#ahm)"/>
+        <text class="tx-lbl" x="715" y="238">MMCS 承诺</text>
+
+        <!-- ═══════════════ 下半区: 两棵树 ═══════════════ -->
+
+        <!-- ── 左: 码字 c 的 MMCS 树 (逆序, 共用方框) ── -->
+        <text class="tx-lbl" x="200" y="268">码字 c 的承诺树</text>
+        <rect class="nd" x="20" y="280" width="48" height="18" rx="3"/><text class="tx-s" x="32" y="289">c₀₀</text><text class="tx-s" x="56" y="289">c₀₁</text>
+        <line class="ln-dash" x1="44" y1="300" x2="44" y2="316" marker-end="url(#ahm)"/>
+        <rect class="nd-hl2" x="29" y="318" width="30" height="18" rx="4"/><text class="tx-s" x="44" y="327">h₀</text>
+        <rect class="nd" x="74" y="280" width="48" height="18" rx="3"/><text class="tx-s" x="86" y="289">c₄₀</text><text class="tx-s" x="110" y="289">c₄₁</text>
+        <line class="ln-dash" x1="98" y1="300" x2="98" y2="316" marker-end="url(#ahm)"/>
+        <rect class="nd-hl2" x="83" y="318" width="30" height="18" rx="4"/><text class="tx-s" x="98" y="327">h₁</text>
+        <rect class="nd" x="128" y="280" width="48" height="18" rx="3"/><text class="tx-s" x="140" y="289">c₂₀</text><text class="tx-s" x="164" y="289">c₂₁</text>
+        <line class="ln-dash" x1="152" y1="300" x2="152" y2="316" marker-end="url(#ahm)"/>
+        <rect class="nd-hl2" x="137" y="318" width="30" height="18" rx="4"/><text class="tx-s" x="152" y="327">h₂</text>
+        <rect class="nd" x="182" y="280" width="48" height="18" rx="3"/><text class="tx-s" x="194" y="289">c₆₀</text><text class="tx-s" x="218" y="289">c₆₁</text>
+        <line class="ln-dash" x1="206" y1="300" x2="206" y2="316" marker-end="url(#ahm)"/>
+        <rect class="nd-hl2" x="191" y="318" width="30" height="18" rx="4"/><text class="tx-s" x="206" y="327">h₃</text>
+        <rect class="nd" x="236" y="280" width="48" height="18" rx="3"/><text class="tx-s" x="248" y="289">c₁₀</text><text class="tx-s" x="272" y="289">c₁₁</text>
+        <line class="ln-dash" x1="260" y1="300" x2="260" y2="316" marker-end="url(#ahm)"/>
+        <rect class="nd-hl2" x="245" y="318" width="30" height="18" rx="4"/><text class="tx-s" x="260" y="327">h₄</text>
+        <rect class="nd" x="290" y="280" width="48" height="18" rx="3"/><text class="tx-s" x="302" y="289">c₅₀</text><text class="tx-s" x="326" y="289">c₅₁</text>
+        <line class="ln-dash" x1="314" y1="300" x2="314" y2="316" marker-end="url(#ahm)"/>
+        <rect class="nd-hl2" x="299" y="318" width="30" height="18" rx="4"/><text class="tx-s" x="314" y="327">h₅</text>
+        <rect class="nd" x="344" y="280" width="48" height="18" rx="3"/><text class="tx-s" x="356" y="289">c₃₀</text><text class="tx-s" x="380" y="289">c₃₁</text>
+        <line class="ln-dash" x1="368" y1="300" x2="368" y2="316" marker-end="url(#ahm)"/>
+        <rect class="nd-hl2" x="353" y="318" width="30" height="18" rx="4"/><text class="tx-s" x="368" y="327">h₆</text>
+        <rect class="nd" x="398" y="280" width="48" height="18" rx="3"/><text class="tx-s" x="410" y="289">c₇₀</text><text class="tx-s" x="434" y="289">c₇₁</text>
+        <line class="ln-dash" x1="422" y1="300" x2="422" y2="316" marker-end="url(#ahm)"/>
+        <rect class="nd-hl2" x="407" y="318" width="30" height="18" rx="4"/><text class="tx-s" x="422" y="327">h₇</text>
+        <!-- h → G -->
+        <line class="ln" x1="44" y1="336" x2="71" y2="368"/><line class="ln" x1="98" y1="336" x2="71" y2="368"/>
+        <line class="ln" x1="152" y1="336" x2="179" y2="368"/><line class="ln" x1="206" y1="336" x2="179" y2="368"/>
+        <line class="ln" x1="260" y1="336" x2="287" y2="368"/><line class="ln" x1="314" y1="336" x2="287" y2="368"/>
+        <line class="ln" x1="368" y1="336" x2="395" y2="368"/><line class="ln" x1="422" y1="336" x2="395" y2="368"/>
+        <rect class="nd" x="53" y="368" width="36" height="20" rx="4"/><text class="tx-s" x="71" y="378">h₈</text>
+        <rect class="nd" x="161" y="368" width="36" height="20" rx="4"/><text class="tx-s" x="179" y="378">h₉</text>
+        <rect class="nd" x="269" y="368" width="36" height="20" rx="4"/><text class="tx-s" x="287" y="378">h₁₀</text>
+        <rect class="nd" x="377" y="368" width="36" height="20" rx="4"/><text class="tx-s" x="395" y="378">h₁₁</text>
+        <!-- G → H -->
+        <line class="ln" x1="71" y1="388" x2="125" y2="420"/><line class="ln" x1="179" y1="388" x2="125" y2="420"/>
+        <line class="ln" x1="287" y1="388" x2="341" y2="420"/><line class="ln" x1="395" y1="388" x2="341" y2="420"/>
+        <rect class="nd" x="107" y="420" width="36" height="20" rx="4"/><text class="tx-s" x="125" y="430">h₁₂</text>
+        <rect class="nd" x="323" y="420" width="36" height="20" rx="4"/><text class="tx-s" x="341" y="430">h₁₃</text>
+        <!-- H → root_c -->
+        <line class="ln" x1="125" y1="440" x2="233" y2="470"/>
+        <line class="ln" x1="341" y1="440" x2="233" y2="470"/>
+        <rect class="nd-hl" x="200" y="470" width="66" height="30" rx="6"/>
+        <foreignObject x="200" y="470" width="66" height="30">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:15px;">\(\text{root}_c\)</div>
+        </foreignObject>
+
+        <!-- divider between two trees -->
+        <line x1="470" y1="248" x2="470" y2="510" stroke="#E6E3DA" stroke-width="1"/>
+
+        <!-- ── 右: 码字 u 的 MMCS 树 (逆序, 2节点共用方框) ── -->
+        <text class="tx-lbl" x="660" y="268">码字 u 的承诺树</text>
+        <rect class="nd-hl" x="514" y="280" width="52" height="18" rx="3"/><text class="tx-s" x="528" y="289">u₀</text><text class="tx-s" x="552" y="289">u₄</text>
+        <line class="ln-dash" x1="540" y1="300" x2="540" y2="316" marker-end="url(#ahm)"/>
+        <rect class="nd-hl2" x="525" y="318" width="30" height="18" rx="4"/><text class="tx-s" x="540" y="327">h₀</text>
+        <rect class="nd-hl" x="594" y="280" width="52" height="18" rx="3"/><text class="tx-s" x="608" y="289">u₂</text><text class="tx-s" x="632" y="289">u₆</text>
+        <line class="ln-dash" x1="620" y1="300" x2="620" y2="316" marker-end="url(#ahm)"/>
+        <rect class="nd-hl2" x="605" y="318" width="30" height="18" rx="4"/><text class="tx-s" x="620" y="327">h₁</text>
+        <rect class="nd-hl" x="674" y="280" width="52" height="18" rx="3"/><text class="tx-s" x="688" y="289">u₁</text><text class="tx-s" x="712" y="289">u₅</text>
+        <line class="ln-dash" x1="700" y1="300" x2="700" y2="316" marker-end="url(#ahm)"/>
+        <rect class="nd-hl2" x="685" y="318" width="30" height="18" rx="4"/><text class="tx-s" x="700" y="327">h₂</text>
+        <rect class="nd-hl" x="754" y="280" width="52" height="18" rx="3"/><text class="tx-s" x="768" y="289">u₃</text><text class="tx-s" x="792" y="289">u₇</text>
+        <line class="ln-dash" x1="780" y1="300" x2="780" y2="316" marker-end="url(#ahm)"/>
+        <rect class="nd-hl2" x="765" y="318" width="30" height="18" rx="4"/><text class="tx-s" x="780" y="327">h₃</text>
+        <!-- k → N -->
+        <line class="ln" x1="540" y1="336" x2="580" y2="395"/>
+        <line class="ln" x1="620" y1="336" x2="580" y2="395"/>
+        <line class="ln" x1="700" y1="336" x2="740" y2="395"/>
+        <line class="ln" x1="780" y1="336" x2="740" y2="395"/>
+        <rect class="nd" x="562" y="395" width="36" height="20" rx="4"/><text class="tx-s" x="580" y="405">h₄</text>
+        <rect class="nd" x="722" y="395" width="36" height="20" rx="4"/><text class="tx-s" x="740" y="405">h₅</text>
+        <!-- N → root_u -->
+        <line class="ln" x1="580" y1="415" x2="660" y2="470"/>
+        <line class="ln" x1="740" y1="415" x2="660" y2="470"/>
+        <rect class="nd-hl" x="627" y="470" width="66" height="30" rx="6"/>
+        <foreignObject x="627" y="470" width="66" height="30">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:15px;">\(\text{root}_u\)</div>
+        </foreignObject>
+      </svg>
+    </div>
+
+    <div class="sub-head"><span class="sub-idx">2.1</span><h3>完整例子</h3></div>
+
+    <p>下面用 \(\mathbb{F}_{17}\) 上的例子，逐步走完图中的每一个环节。给定 \(4 \times 2\) 的消息矩阵，每一列记为 \(\mathbf{a}_0,\;\mathbf{a}_1\)。</p>
+
+    <div class="math-block">\[\mathbf{a} = \begin{pmatrix} a_{00} & a_{01} \\ a_{10} & a_{11} \\ a_{20} & a_{21} \\ a_{30} & a_{31} \end{pmatrix} = \begin{pmatrix} 2 & 1 \\ 3 & 4 \\ 5 & 2 \\ 7 & 6 \end{pmatrix}, \quad \mathbf{a}_0 = (2,3,5,7),\; \mathbf{a}_1 = (1,4,2,6)\]</div>
+
+    <div class="subsub-head"><span class="subsub-idx">2.1.1</span><h4>编码 a → 码字 c</h4></div>
+
+    <p>对 \(\mathbf{a}\) 的每一列分别做 RS 编码。取膨胀因子 \(k = 2\)，消息长度 \(N = 4\)，码字长度 \(M = N \cdot k = 8\)。将每列 \(\mathbf{a}_j\) 视为多项式 \(f_j(x) = \sum_{l} a_{lj}\,x^l\) 的系数，在 \(\mathbb{F}_{17}\) 中 \(M\) 阶乘法子群（生成元 \(g = 9\)，即 \(D = \{1,9,13,15,16,8,4,2\}\)）上求值，得到 \(8 \times 2\) 的码字矩阵 \(\mathbf{c}\)：</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 330 238" width="330" height="238">
+        <defs><marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#555" stroke-width="1.2"/></marker></defs>
+        <text class="tx-s" x="38" y="70">a₀</text>
+        <rect class="nd" x="20" y="76" width="36" height="22" rx="4"/><text class="tx-s" x="38" y="88">2</text>
+        <rect class="nd" x="20" y="102" width="36" height="22" rx="4"/><text class="tx-s" x="38" y="114">3</text>
+        <rect class="nd" x="20" y="128" width="36" height="22" rx="4"/><text class="tx-s" x="38" y="140">5</text>
+        <rect class="nd" x="20" y="154" width="36" height="22" rx="4"/><text class="tx-s" x="38" y="166">7</text>
+        <text class="tx-s" x="80" y="70">a₁</text>
+        <rect class="nd" x="62" y="76" width="36" height="22" rx="4"/><text class="tx-s" x="80" y="88">1</text>
+        <rect class="nd" x="62" y="102" width="36" height="22" rx="4"/><text class="tx-s" x="80" y="114">4</text>
+        <rect class="nd" x="62" y="128" width="36" height="22" rx="4"/><text class="tx-s" x="80" y="140">2</text>
+        <rect class="nd" x="62" y="154" width="36" height="22" rx="4"/><text class="tx-s" x="80" y="166">6</text>
+        <line class="ln" x1="120" y1="119" x2="220" y2="119" marker-end="url(#ah)"/>
+        <text class="tx-s" x="170" y="108" style="font-size:11px">encode on D</text>
+        <foreignObject x="120" y="120" width="100" height="24">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;">\(c_{ij} = f_j(g^i)\)</div>
+        </foreignObject>
+        <text class="tx-s" x="254" y="18">c₀</text>
+        <rect class="nd-hl" x="236" y="24" width="36" height="22" rx="4"/><text class="tx-s" x="254" y="36">0</text>
+        <rect class="nd-hl" x="236" y="50" width="36" height="22" rx="4"/><text class="tx-s" x="254" y="62">12</text>
+        <rect class="nd-hl" x="236" y="76" width="36" height="22" rx="4"/><text class="tx-s" x="254" y="88">13</text>
+        <rect class="nd-hl" x="236" y="102" width="36" height="22" rx="4"/><text class="tx-s" x="254" y="114">11</text>
+        <rect class="nd-hl" x="236" y="128" width="36" height="22" rx="4"/><text class="tx-s" x="254" y="140">14</text>
+        <rect class="nd-hl" x="236" y="154" width="36" height="22" rx="4"/><text class="tx-s" x="254" y="166">3</text>
+        <rect class="nd-hl" x="236" y="180" width="36" height="22" rx="4"/><text class="tx-s" x="254" y="192">15</text>
+        <rect class="nd-hl" x="236" y="206" width="36" height="22" rx="4"/><text class="tx-s" x="254" y="218">16</text>
+        <text class="tx-s" x="296" y="18">c₁</text>
+        <rect class="nd-hl" x="278" y="24" width="36" height="22" rx="4"/><text class="tx-s" x="296" y="36">13</text>
+        <rect class="nd-hl" x="278" y="50" width="36" height="22" rx="4"/><text class="tx-s" x="296" y="62">0</text>
+        <rect class="nd-hl" x="278" y="76" width="36" height="22" rx="4"/><text class="tx-s" x="296" y="88">7</text>
+        <rect class="nd-hl" x="278" y="102" width="36" height="22" rx="4"/><text class="tx-s" x="296" y="114">4</text>
+        <rect class="nd-hl" x="278" y="128" width="36" height="22" rx="4"/><text class="tx-s" x="296" y="140">10</text>
+        <rect class="nd-hl" x="278" y="154" width="36" height="22" rx="4"/><text class="tx-s" x="296" y="166">3</text>
+        <rect class="nd-hl" x="278" y="180" width="36" height="22" rx="4"/><text class="tx-s" x="296" y="192">8</text>
+        <rect class="nd-hl" x="278" y="206" width="36" height="22" rx="4"/><text class="tx-s" x="296" y="218">14</text>
+      </svg>
+    </div>
+
+    <div class="subsub-head"><span class="subsub-idx">2.1.2</span><h4>MMCS 承诺 c → \(\text{root}_c\)</h4></div>
+
+    <p>将码字的每一行按照 bit-reverse 顺序排列，每行哈希成一个叶子，再逐层两两合并，最终得到树根 \(\text{root}_c\)，发送给 Verifier。</p>
+
+    <div class="diagram">
+            <svg viewBox="0 0 520 270" width="520" height="270">
+        <rect class="nd" x="12" y="220" width="52" height="20" rx="3"/><text class="tx-s" x="26" y="230">0</text><text class="tx-s" x="50" y="230">13</text>
+        <rect class="nd" x="75" y="220" width="52" height="20" rx="3"/><text class="tx-s" x="89" y="230">14</text><text class="tx-s" x="113" y="230">10</text>
+        <rect class="nd" x="139" y="220" width="52" height="20" rx="3"/><text class="tx-s" x="153" y="230">13</text><text class="tx-s" x="177" y="230">7</text>
+        <rect class="nd" x="202" y="220" width="52" height="20" rx="3"/><text class="tx-s" x="216" y="230">15</text><text class="tx-s" x="240" y="230">8</text>
+        <rect class="nd" x="266" y="220" width="52" height="20" rx="3"/><text class="tx-s" x="280" y="230">12</text><text class="tx-s" x="304" y="230">0</text>
+        <rect class="nd" x="329" y="220" width="52" height="20" rx="3"/><text class="tx-s" x="343" y="230">3</text><text class="tx-s" x="367" y="230">3</text>
+        <rect class="nd" x="393" y="220" width="52" height="20" rx="3"/><text class="tx-s" x="407" y="230">11</text><text class="tx-s" x="431" y="230">4</text>
+        <rect class="nd" x="456" y="220" width="52" height="20" rx="3"/><text class="tx-s" x="470" y="230">16</text><text class="tx-s" x="494" y="230">14</text>
+        <line class="ln-dash" x1="38" y1="220" x2="38" y2="202"/>
+        <line class="ln-dash" x1="101" y1="220" x2="101" y2="202"/>
+        <line class="ln-dash" x1="165" y1="220" x2="165" y2="202"/>
+        <line class="ln-dash" x1="228" y1="220" x2="228" y2="202"/>
+        <line class="ln-dash" x1="292" y1="220" x2="292" y2="202"/>
+        <line class="ln-dash" x1="355" y1="220" x2="355" y2="202"/>
+        <line class="ln-dash" x1="419" y1="220" x2="419" y2="202"/>
+        <line class="ln-dash" x1="482" y1="220" x2="482" y2="202"/>
+        <rect class="nd-hl2" x="18" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="38" y="191">h₀</text>
+        <rect class="nd-hl2" x="81" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="101" y="191">h₁</text>
+        <rect class="nd-hl2" x="145" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="165" y="191">h₂</text>
+        <rect class="nd-hl2" x="208" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="228" y="191">h₃</text>
+        <rect class="nd-hl2" x="272" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="292" y="191">h₄</text>
+        <rect class="nd-hl2" x="335" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="355" y="191">h₅</text>
+        <rect class="nd-hl2" x="399" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="419" y="191">h₆</text>
+        <rect class="nd-hl2" x="462" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="482" y="191">h₇</text>
+        <line class="ln" x1="38" y1="180" x2="69" y2="152"/>
+        <line class="ln" x1="101" y1="180" x2="69" y2="152"/>
+        <line class="ln" x1="165" y1="180" x2="196" y2="152"/>
+        <line class="ln" x1="228" y1="180" x2="196" y2="152"/>
+        <line class="ln" x1="292" y1="180" x2="324" y2="152"/>
+        <line class="ln" x1="355" y1="180" x2="324" y2="152"/>
+        <line class="ln" x1="419" y1="180" x2="451" y2="152"/>
+        <line class="ln" x1="482" y1="180" x2="451" y2="152"/>
+        <rect class="nd" x="49" y="130" width="40" height="22" rx="4"/><text class="tx-s" x="69" y="141">h₈</text>
+        <rect class="nd" x="176" y="130" width="40" height="22" rx="4"/><text class="tx-s" x="196" y="141">h₉</text>
+        <rect class="nd" x="301" y="130" width="46" height="22" rx="4"/><text class="tx-s" x="324" y="141">h₁₀</text>
+        <rect class="nd" x="428" y="130" width="46" height="22" rx="4"/><text class="tx-s" x="451" y="141">h₁₁</text>
+        <line class="ln" x1="69" y1="130" x2="133" y2="102"/>
+        <line class="ln" x1="196" y1="130" x2="133" y2="102"/>
+        <line class="ln" x1="324" y1="130" x2="387" y2="102"/>
+        <line class="ln" x1="451" y1="130" x2="387" y2="102"/>
+        <rect class="nd" x="110" y="80" width="46" height="22" rx="4"/><text class="tx-s" x="133" y="91">h₁₂</text>
+        <rect class="nd" x="364" y="80" width="46" height="22" rx="4"/><text class="tx-s" x="387" y="91">h₁₃</text>
+        <line class="ln" x1="133" y1="80" x2="260" y2="48"/>
+        <line class="ln" x1="387" y1="80" x2="260" y2="48"/>
+        <rect class="nd-hl" x="227" y="20" width="66" height="28" rx="6"/>
+        <foreignObject x="227" y="20" width="66" height="28">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:14px;">\(\text{root}_c\)</div>
+        </foreignObject>
+        <text class="tx-lbl" x="26"  y="256">c₀₀</text><text class="tx-lbl" x="50"  y="256">c₀₁</text>
+        <text class="tx-lbl" x="89"  y="256">c₄₀</text><text class="tx-lbl" x="113" y="256">c₄₁</text>
+        <text class="tx-lbl" x="153" y="256">c₂₀</text><text class="tx-lbl" x="177" y="256">c₂₁</text>
+        <text class="tx-lbl" x="216" y="256">c₆₀</text><text class="tx-lbl" x="240" y="256">c₆₁</text>
+        <text class="tx-lbl" x="280" y="256">c₁₀</text><text class="tx-lbl" x="304" y="256">c₁₁</text>
+        <text class="tx-lbl" x="343" y="256">c₅₀</text><text class="tx-lbl" x="367" y="256">c₅₁</text>
+        <text class="tx-lbl" x="407" y="256">c₃₀</text><text class="tx-lbl" x="431" y="256">c₃₁</text>
+        <text class="tx-lbl" x="470" y="256">c₇₀</text><text class="tx-lbl" x="494" y="256">c₇₁</text>
+      </svg>
+    </div>
+
+    <div class="subsub-head"><span class="subsub-idx">2.1.3</span><h4>随机线性组合</h4></div>
+
+    <p>给定消息 \(\mathbf{a}_0,\,\mathbf{a}_1\) 码字的承诺，令 \(h_0,\,h_1\) 为以 \(\mathbf{a}_0,\,\mathbf{a}_1\) 为求值的 MLE。假设证明者需要证明在 \(\mathbf{z} = (3,\,4)\) 处的值分别为 \(v_0 = 12,\;v_1 = 9\)。Verifier 发送随机数 \(r = 2\)，Prover 构造线性组合 \(h = (1{-}r)\,h_0 + r\,h_1\)，其在消息域上的求值恰好是 \(\mathbf{b} = (1{-}r)\,\mathbf{a}_0 + r\,\mathbf{a}_1\)。问题归约为只需证明 \(h(\mathbf{z}) = v\)，其中 \(v = (1{-}r)\,v_0 + r\,v_1 = 16 \times 12 + 2 \times 9 \equiv 6 \pmod{17}\)。</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 480 160" width="480" height="160">
+        <!-- column headers -->
+        <text class="tx-s" x="48" y="16">a₀</text>
+        <text class="tx-s" x="104" y="16">a₁</text>
+        <text class="tx-s" x="198" y="16">b</text>
+        <!-- row 0 -->
+        <rect class="nd" x="30" y="26" width="36" height="24" rx="4"/><text class="tx-s" x="48" y="42">2</text>
+        <rect class="nd" x="86" y="26" width="36" height="24" rx="4"/><text class="tx-s" x="104" y="42">1</text>
+        <text class="tx-s" x="148" y="42">→</text>
+        <rect class="nd-hl2" x="180" y="26" width="36" height="24" rx="4"/><text class="tx-s" x="198" y="42">0</text>
+        <text class="tx-s" x="228" y="42" style="text-anchor:start">b₀ = 16×2 + 2×1 = 34 ≡ 0</text>
+        <!-- row 1 -->
+        <rect class="nd" x="30" y="60" width="36" height="24" rx="4"/><text class="tx-s" x="48" y="76">3</text>
+        <rect class="nd" x="86" y="60" width="36" height="24" rx="4"/><text class="tx-s" x="104" y="76">4</text>
+        <text class="tx-s" x="148" y="76">→</text>
+        <rect class="nd-hl2" x="180" y="60" width="36" height="24" rx="4"/><text class="tx-s" x="198" y="76">5</text>
+        <text class="tx-s" x="228" y="76" style="text-anchor:start">b₁ = 16×3 + 2×4 = 56 ≡ 5</text>
+        <!-- row 2 -->
+        <rect class="nd" x="30" y="94" width="36" height="24" rx="4"/><text class="tx-s" x="48" y="110">5</text>
+        <rect class="nd" x="86" y="94" width="36" height="24" rx="4"/><text class="tx-s" x="104" y="110">2</text>
+        <text class="tx-s" x="148" y="110">→</text>
+        <rect class="nd-hl2" x="180" y="94" width="36" height="24" rx="4"/><text class="tx-s" x="198" y="110">16</text>
+        <text class="tx-s" x="228" y="110" style="text-anchor:start">b₂ = 16×5 + 2×2 = 84 ≡ 16</text>
+        <!-- row 3 -->
+        <rect class="nd" x="30" y="128" width="36" height="24" rx="4"/><text class="tx-s" x="48" y="144">7</text>
+        <rect class="nd" x="86" y="128" width="36" height="24" rx="4"/><text class="tx-s" x="104" y="144">6</text>
+        <text class="tx-s" x="148" y="144">→</text>
+        <rect class="nd-hl2" x="180" y="128" width="36" height="24" rx="4"/><text class="tx-s" x="198" y="144">5</text>
+        <text class="tx-s" x="228" y="144" style="text-anchor:start">b₃ = 16×7 + 2×6 = 124 ≡ 5</text>
+      </svg>
+    </div>
+
+    <div class="subsub-head"><span class="subsub-idx">2.1.4</span><h4>编码 b → 码字 u</h4></div>
+
+    <p>对 \(\mathbf{b}\) 做 RS 编码得到码字 \(\mathbf{u}\)（消息长度 \(N=4\)，膨胀因子 \(k=2\)，码字长度 \(M=8\)，求值域 \(D=\{1,9,13,15,16,8,4,2\}\)）。由于 RS 编码是线性的，这等价于对码字 \(\mathbf{c}\) 的两列做<strong>同一线性组合</strong>：\(\mathbf{u} = (1-r)\,\mathbf{c}_0 + r\,\mathbf{c}_1\)。即"先折叠 \(\mathbf{a}\to\mathbf{b}\) 再编码"与"先编码 \(\mathbf{a}\to\mathbf{c}\) 再折叠"两条路径殊途同归：</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 470 250" width="470" height="250">
+        <defs><marker id="ah2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#555" stroke-width="1.2"/></marker></defs>
+
+        <!-- 左: 码字 c0 c1 (8x2) -->
+        <text class="tx-s" x="38" y="18">c₀</text><text class="tx-s" x="80" y="18">c₁</text>
+        <rect class="nd" x="20" y="24"  width="36" height="22" rx="4"/><text class="tx-s" x="38" y="36">0</text>
+        <rect class="nd" x="20" y="50"  width="36" height="22" rx="4"/><text class="tx-s" x="38" y="62">12</text>
+        <rect class="nd" x="20" y="76"  width="36" height="22" rx="4"/><text class="tx-s" x="38" y="88">13</text>
+        <rect class="nd" x="20" y="102" width="36" height="22" rx="4"/><text class="tx-s" x="38" y="114">11</text>
+        <rect class="nd" x="20" y="128" width="36" height="22" rx="4"/><text class="tx-s" x="38" y="140">14</text>
+        <rect class="nd" x="20" y="154" width="36" height="22" rx="4"/><text class="tx-s" x="38" y="166">3</text>
+        <rect class="nd" x="20" y="180" width="36" height="22" rx="4"/><text class="tx-s" x="38" y="192">15</text>
+        <rect class="nd" x="20" y="206" width="36" height="22" rx="4"/><text class="tx-s" x="38" y="218">16</text>
+        <rect class="nd" x="62" y="24"  width="36" height="22" rx="4"/><text class="tx-s" x="80" y="36">13</text>
+        <rect class="nd" x="62" y="50"  width="36" height="22" rx="4"/><text class="tx-s" x="80" y="62">0</text>
+        <rect class="nd" x="62" y="76"  width="36" height="22" rx="4"/><text class="tx-s" x="80" y="88">7</text>
+        <rect class="nd" x="62" y="102" width="36" height="22" rx="4"/><text class="tx-s" x="80" y="114">4</text>
+        <rect class="nd" x="62" y="128" width="36" height="22" rx="4"/><text class="tx-s" x="80" y="140">10</text>
+        <rect class="nd" x="62" y="154" width="36" height="22" rx="4"/><text class="tx-s" x="80" y="166">3</text>
+        <rect class="nd" x="62" y="180" width="36" height="22" rx="4"/><text class="tx-s" x="80" y="192">8</text>
+        <rect class="nd" x="62" y="206" width="36" height="22" rx="4"/><text class="tx-s" x="80" y="218">14</text>
+
+        <!-- 箭头: c -> u (折叠/线性组合) -->
+        <line class="ln" x1="104" y1="119" x2="190" y2="119" marker-end="url(#ah2)"/>
+        <foreignObject x="104" y="92" width="92" height="22">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;">\((1{-}r)\mathbf{c}_0{+}r\mathbf{c}_1\)</div>
+        </foreignObject>
+
+        <!-- 中: 码字 u (8x1) -->
+        <text class="tx-s" x="214" y="18">u</text>
+        <rect class="nd-hl" x="196" y="24"  width="36" height="22" rx="4"/><text class="tx-s" x="214" y="36">9</text>
+        <rect class="nd-hl" x="196" y="50"  width="36" height="22" rx="4"/><text class="tx-s" x="214" y="62">5</text>
+        <rect class="nd-hl" x="196" y="76"  width="36" height="22" rx="4"/><text class="tx-s" x="214" y="88">1</text>
+        <rect class="nd-hl" x="196" y="102" width="36" height="22" rx="4"/><text class="tx-s" x="214" y="114">14</text>
+        <rect class="nd-hl" x="196" y="128" width="36" height="22" rx="4"/><text class="tx-s" x="214" y="140">6</text>
+        <rect class="nd-hl" x="196" y="154" width="36" height="22" rx="4"/><text class="tx-s" x="214" y="166">3</text>
+        <rect class="nd-hl" x="196" y="180" width="36" height="22" rx="4"/><text class="tx-s" x="214" y="192">1</text>
+        <rect class="nd-hl" x="196" y="206" width="36" height="22" rx="4"/><text class="tx-s" x="214" y="218">12</text>
+
+        <!-- 箭头: b -> u (编码), 向左指向 u -->
+        <line class="ln" x1="372" y1="119" x2="240" y2="119" marker-end="url(#ah2)"/>
+        <foreignObject x="252" y="92" width="108" height="22">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;">\(u_i=f(g^i)\)</div>
+        </foreignObject>
+        <text class="tx-s" x="306" y="138" style="font-size:11px">encode on D</text>
+
+        <!-- 右: 消息 b (4x1), 居中对齐 u -->
+        <text class="tx-s" x="396" y="66">b</text>
+        <rect class="nd" x="378" y="72"  width="36" height="22" rx="4"/><text class="tx-s" x="396" y="84">0</text>
+        <rect class="nd" x="378" y="98"  width="36" height="22" rx="4"/><text class="tx-s" x="396" y="110">5</text>
+        <rect class="nd" x="378" y="124" width="36" height="22" rx="4"/><text class="tx-s" x="396" y="136">16</text>
+        <rect class="nd" x="378" y="150" width="36" height="22" rx="4"/><text class="tx-s" x="396" y="162">5</text>
+      </svg>
+    </div>
+
+    <div class="subsub-head"><span class="subsub-idx">2.1.5</span><h4>MMCS 承诺 u → \(\text{root}_u\)</h4></div>
+
+    <p>把码字 \(\mathbf{u}\) 按 3-bit 反转重排为 \((u_0,u_4,u_2,u_6,u_1,u_5,u_3,u_7)\)，相邻两元素配对成叶子，逐层合并得到 \(\text{root}_u\)，由 Prover 发送给 Verifier。</p>
+
+    <div class="diagram">
+      <svg viewBox="0 50 520 215" width="520" height="215">
+        <!-- ── leaves: bit-reverse 后相邻配对 ── -->
+        <rect class="nd" x="35"  y="220" width="60" height="20" rx="3"/><text class="tx-s" x="51"  y="230">9</text><text class="tx-s" x="79"  y="230">6</text>
+        <rect class="nd" x="170" y="220" width="60" height="20" rx="3"/><text class="tx-s" x="186" y="230">1</text><text class="tx-s" x="214" y="230">1</text>
+        <rect class="nd" x="305" y="220" width="60" height="20" rx="3"/><text class="tx-s" x="321" y="230">5</text><text class="tx-s" x="349" y="230">3</text>
+        <rect class="nd" x="440" y="220" width="60" height="20" rx="3"/><text class="tx-s" x="456" y="230">14</text><text class="tx-s" x="484" y="230">12</text>
+        <!-- pair labels -->
+        <text class="tx-lbl" x="51"  y="254">u₀</text><text class="tx-lbl" x="79"  y="254">u₄</text>
+        <text class="tx-lbl" x="186" y="254">u₂</text><text class="tx-lbl" x="214" y="254">u₆</text>
+        <text class="tx-lbl" x="321" y="254">u₁</text><text class="tx-lbl" x="349" y="254">u₅</text>
+        <text class="tx-lbl" x="456" y="254">u₃</text><text class="tx-lbl" x="484" y="254">u₇</text>
+        <!-- leaf → leaf-hash -->
+        <line class="ln-dash" x1="65"  y1="220" x2="65"  y2="202"/>
+        <line class="ln-dash" x1="200" y1="220" x2="200" y2="202"/>
+        <line class="ln-dash" x1="335" y1="220" x2="335" y2="202"/>
+        <line class="ln-dash" x1="470" y1="220" x2="470" y2="202"/>
+        <rect class="nd-hl2" x="45"  y="180" width="40" height="22" rx="4"/><text class="tx-s" x="65"  y="191">h₀</text>
+        <rect class="nd-hl2" x="180" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="200" y="191">h₁</text>
+        <rect class="nd-hl2" x="315" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="335" y="191">h₂</text>
+        <rect class="nd-hl2" x="450" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="470" y="191">h₃</text>
+        <!-- leaf-hash → mid -->
+        <line class="ln" x1="65"  y1="180" x2="133" y2="152"/>
+        <line class="ln" x1="200" y1="180" x2="133" y2="152"/>
+        <line class="ln" x1="335" y1="180" x2="403" y2="152"/>
+        <line class="ln" x1="470" y1="180" x2="403" y2="152"/>
+        <rect class="nd" x="113" y="130" width="40" height="22" rx="4"/><text class="tx-s" x="133" y="141">h₄</text>
+        <rect class="nd" x="383" y="130" width="40" height="22" rx="4"/><text class="tx-s" x="403" y="141">h₅</text>
+        <!-- mid → root -->
+        <line class="ln" x1="133" y1="130" x2="268" y2="88"/>
+        <line class="ln" x1="403" y1="130" x2="268" y2="88"/>
+        <rect class="nd-hl" x="235" y="60" width="66" height="28" rx="6"/>
+        <foreignObject x="235" y="60" width="66" height="28">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:14px;">\(\text{root}_u\)</div>
+        </foreignObject>
+      </svg>
+    </div>
+
+    <div class="subsub-head"><span class="subsub-idx">2.1.6</span><h4>证明生成</h4></div>
+
+    <p>给定码字 \(\mathbf{u}\) 的承诺 \(\text{root}_u\)，可以用 <a href="basefold_v6.html">第一篇</a>的 BaseFold 流程证明：多线性多项式 \(h\) 在 \(\mathbf{z}\) 处的打开为 \(v\)。但我们还需要证明 \(h\) 与 \(h_0,\,h_1\) 之间的线性组合关系，即 \(h = (1{-}r)\,h_0 + r\,h_1\) 确实成立。给定多项式 \(h_0,\,h_1\) 码字的承诺以及多项式 \(h\) 码字的承诺，如何证明它们满足这一线性组合关系？</p>
+
+    <div class="diagram">
+      <svg viewBox="0 16 1080 260" width="1080" height="260">
+        <!-- ══════════ 左树: root_c (h0,h1 码字的承诺) ══════════ -->
+        <g transform="translate(0,12)">
+        <rect class="nd" x="12" y="220" width="52" height="20" rx="3"/><text class="tx-s" x="26" y="230">0</text><text class="tx-s" x="50" y="230">13</text>
+        <rect class="nd" x="75" y="220" width="52" height="20" rx="3"/><text class="tx-s" x="89" y="230">14</text><text class="tx-s" x="113" y="230">10</text>
+        <rect class="nd" x="139" y="220" width="52" height="20" rx="3"/><text class="tx-s" x="153" y="230">13</text><text class="tx-s" x="177" y="230">7</text>
+        <rect class="nd" style="fill:#A9C8E8" x="202" y="220" width="52" height="20" rx="3"/><text class="tx-s" x="216" y="230">15</text><text class="tx-s" x="240" y="230">8</text>
+        <rect class="nd" x="266" y="220" width="52" height="20" rx="3"/><text class="tx-s" x="280" y="230">12</text><text class="tx-s" x="304" y="230">0</text>
+        <rect class="nd" x="329" y="220" width="52" height="20" rx="3"/><text class="tx-s" x="343" y="230">3</text><text class="tx-s" x="367" y="230">3</text>
+        <rect class="nd" x="393" y="220" width="52" height="20" rx="3"/><text class="tx-s" x="407" y="230">11</text><text class="tx-s" x="431" y="230">4</text>
+        <rect class="nd" x="456" y="220" width="52" height="20" rx="3"/><text class="tx-s" x="470" y="230">16</text><text class="tx-s" x="494" y="230">14</text>
+        <line class="ln-dash" x1="38" y1="220" x2="38" y2="202"/>
+        <line class="ln-dash" x1="101" y1="220" x2="101" y2="202"/>
+        <line class="ln-dash" x1="165" y1="220" x2="165" y2="202"/>
+        <line class="ln-dash" x1="228" y1="220" x2="228" y2="202"/>
+        <line class="ln-dash" x1="292" y1="220" x2="292" y2="202"/>
+        <line class="ln-dash" x1="355" y1="220" x2="355" y2="202"/>
+        <line class="ln-dash" x1="419" y1="220" x2="419" y2="202"/>
+        <line class="ln-dash" x1="482" y1="220" x2="482" y2="202"/>
+        <rect class="nd-hl2" x="18" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="38" y="191">h₀</text>
+        <rect class="nd-hl2" x="81" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="101" y="191">h₁</text>
+        <rect class="nd-hl2" style="fill:#A9C8E8" x="145" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="165" y="191">h₂</text>
+        <rect class="nd-hl2" x="208" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="228" y="191">h₃</text>
+        <rect class="nd-hl2" x="272" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="292" y="191">h₄</text>
+        <rect class="nd-hl2" x="335" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="355" y="191">h₅</text>
+        <rect class="nd-hl2" x="399" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="419" y="191">h₆</text>
+        <rect class="nd-hl2" x="462" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="482" y="191">h₇</text>
+        <line class="ln" x1="38" y1="180" x2="69" y2="152"/>
+        <line class="ln" x1="101" y1="180" x2="69" y2="152"/>
+        <line class="ln" x1="165" y1="180" x2="196" y2="152"/>
+        <line class="ln" x1="228" y1="180" x2="196" y2="152"/>
+        <line class="ln" x1="292" y1="180" x2="324" y2="152"/>
+        <line class="ln" x1="355" y1="180" x2="324" y2="152"/>
+        <line class="ln" x1="419" y1="180" x2="451" y2="152"/>
+        <line class="ln" x1="482" y1="180" x2="451" y2="152"/>
+        <rect class="nd" style="fill:#A9C8E8" x="49" y="130" width="40" height="22" rx="4"/><text class="tx-s" x="69" y="141">h₈</text>
+        <rect class="nd" x="176" y="130" width="40" height="22" rx="4"/><text class="tx-s" x="196" y="141">h₉</text>
+        <rect class="nd" x="301" y="130" width="46" height="22" rx="4"/><text class="tx-s" x="324" y="141">h₁₀</text>
+        <rect class="nd" x="428" y="130" width="46" height="22" rx="4"/><text class="tx-s" x="451" y="141">h₁₁</text>
+        <line class="ln" x1="69" y1="130" x2="133" y2="102"/>
+        <line class="ln" x1="196" y1="130" x2="133" y2="102"/>
+        <line class="ln" x1="324" y1="130" x2="387" y2="102"/>
+        <line class="ln" x1="451" y1="130" x2="387" y2="102"/>
+        <rect class="nd" x="110" y="80" width="46" height="22" rx="4"/><text class="tx-s" x="133" y="91">h₁₂</text>
+        <rect class="nd" style="fill:#A9C8E8" x="364" y="80" width="46" height="22" rx="4"/><text class="tx-s" x="387" y="91">h₁₃</text>
+        <line class="ln" x1="133" y1="80" x2="260" y2="48"/>
+        <line class="ln" x1="387" y1="80" x2="260" y2="48"/>
+        <rect class="nd-hl" x="227" y="20" width="66" height="28" rx="6"/>
+        <foreignObject x="227" y="20" width="66" height="28">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:14px;">\(\text{root}_c\)</div>
+        </foreignObject>
+        <text class="tx-lbl" x="26"  y="256">c₀₀</text><text class="tx-lbl" x="50"  y="256">c₀₁</text>
+        <text class="tx-lbl" x="89"  y="256">c₄₀</text><text class="tx-lbl" x="113" y="256">c₄₁</text>
+        <text class="tx-lbl" x="153" y="256">c₂₀</text><text class="tx-lbl" x="177" y="256">c₂₁</text>
+        <text class="tx-lbl" x="216" y="256">c₆₀</text><text class="tx-lbl" x="240" y="256">c₆₁</text>
+        <text class="tx-lbl" x="280" y="256">c₁₀</text><text class="tx-lbl" x="304" y="256">c₁₁</text>
+        <text class="tx-lbl" x="343" y="256">c₅₀</text><text class="tx-lbl" x="367" y="256">c₅₁</text>
+        <text class="tx-lbl" x="407" y="256">c₃₀</text><text class="tx-lbl" x="431" y="256">c₃₁</text>
+        <text class="tx-lbl" x="470" y="256">c₇₀</text><text class="tx-lbl" x="494" y="256">c₇₁</text>
+        </g>
+
+        <!-- 分隔 -->
+        <line x1="540" y1="20" x2="540" y2="275" stroke="#E6E3DA" stroke-width="1"/>
+
+        <!-- ══════════ 右树: root_u (h 码字的承诺) ══════════ -->
+        <g transform="translate(560,-38)">
+        <rect class="nd" x="35"  y="220" width="60" height="20" rx="3"/><text class="tx-s" x="51"  y="230">9</text><text class="tx-s" x="79"  y="230">6</text>
+        <rect class="nd" style="fill:#A9C8E8" x="170" y="220" width="60" height="20" rx="3"/><text class="tx-s" x="186" y="230">1</text><text class="tx-s" x="214" y="230">1</text>
+        <rect class="nd" x="305" y="220" width="60" height="20" rx="3"/><text class="tx-s" x="321" y="230">5</text><text class="tx-s" x="349" y="230">3</text>
+        <rect class="nd" x="440" y="220" width="60" height="20" rx="3"/><text class="tx-s" x="456" y="230">14</text><text class="tx-s" x="484" y="230">12</text>
+        <text class="tx-lbl" x="51"  y="254">u₀</text><text class="tx-lbl" x="79"  y="254">u₄</text>
+        <text class="tx-lbl" x="186" y="254">u₂</text><text class="tx-lbl" x="214" y="254">u₆</text>
+        <text class="tx-lbl" x="321" y="254">u₁</text><text class="tx-lbl" x="349" y="254">u₅</text>
+        <text class="tx-lbl" x="456" y="254">u₃</text><text class="tx-lbl" x="484" y="254">u₇</text>
+        <line class="ln-dash" x1="65"  y1="220" x2="65"  y2="202"/>
+        <line class="ln-dash" x1="200" y1="220" x2="200" y2="202"/>
+        <line class="ln-dash" x1="335" y1="220" x2="335" y2="202"/>
+        <line class="ln-dash" x1="470" y1="220" x2="470" y2="202"/>
+        <rect class="nd-hl2" style="fill:#A9C8E8" x="45"  y="180" width="40" height="22" rx="4"/><text class="tx-s" x="65"  y="191">h₀</text>
+        <rect class="nd-hl2" x="180" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="200" y="191">h₁</text>
+        <rect class="nd-hl2" x="315" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="335" y="191">h₂</text>
+        <rect class="nd-hl2" x="450" y="180" width="40" height="22" rx="4"/><text class="tx-s" x="470" y="191">h₃</text>
+        <line class="ln" x1="65"  y1="180" x2="133" y2="152"/>
+        <line class="ln" x1="200" y1="180" x2="133" y2="152"/>
+        <line class="ln" x1="335" y1="180" x2="403" y2="152"/>
+        <line class="ln" x1="470" y1="180" x2="403" y2="152"/>
+        <rect class="nd" x="113" y="130" width="40" height="22" rx="4"/><text class="tx-s" x="133" y="141">h₄</text>
+        <rect class="nd" style="fill:#A9C8E8" x="383" y="130" width="40" height="22" rx="4"/><text class="tx-s" x="403" y="141">h₅</text>
+        <line class="ln" x1="133" y1="130" x2="268" y2="88"/>
+        <line class="ln" x1="403" y1="130" x2="268" y2="88"/>
+        <rect class="nd-hl" x="235" y="60" width="66" height="28" rx="6"/>
+        <foreignObject x="235" y="60" width="66" height="28">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:14px;">\(\text{root}_u\)</div>
+        </foreignObject>
+        </g>
+      </svg>
+    </div>
+
+    <p>验证者随机选择一个以 \(\text{root}_c\) 为根节点的二叉树的叶子节点（一个查询位置），要求证明者证明：该叶子节点的码字的线性组合等于 \(\text{root}_u\) 树对应叶子节点的码字。假设验证者随机选择索引 3，证明者需要证明码字 \(c_{60},\,c_{61}\) 与码字 \(u_6\) 满足线性组合关系。</p>
+
+    <p>证明者发送码字 \((c_{60},\,c_{61}) = (15,\,8)\) 以及其 Merkle 证明、码字 \((u_2,\,u_6) = (1,\,1)\) 以及其 Merkle 证明。验证者先用两条 Merkle 证明分别核验这两个叶子确实属于 \(\text{root}_c\) 与 \(\text{root}_u\)，再核验线性组合：</p>
+
+    <div class="math-block">\[16 \times 15 + 2 \times 8 = 256 \equiv 1 = u_6 \pmod{17}\]</div>
+
+    <p>这里的 \(\text{root}_u\) 正是 BaseFold 第一轮折叠起点的码字承诺。验证者可以用拿到的叶子节点 \(u_2,\,u_6\) 验证下一轮折叠的正确性，之后就回到了<a href="basefold_v6.html">第一篇</a>的单列 BaseFold 流程。</p>
+
+  </section>
+
+  <footer>Basefold v6 · 本仓库实现走读（slop-basefold · BabyBear + Poseidon2）— Technical Walkthrough</footer>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  renderMathInElement(document.body, {
+    delimiters: [
+      {left: "\\[", right: "\\]", display: true},
+      {left: "\\(", right: "\\)", display: false}
+    ]
+  });
+
+  /* ── SVG drag-to-move with auto-save ── */
+  var svg = document.getElementById("commit-svg");
+  if (!svg) return;
+  var SAVE_URL = "http://127.0.0.1:8432/save-svg";
+  var saveTimer = null;
+
+  function saveSvg() {
+    var clone = svg.cloneNode(true);
+    clone.removeAttribute("style");
+    clone.querySelectorAll("text,rect,line,circle").forEach(function(el){ el.style.cursor = ""; });
+    fetch(SAVE_URL, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({id: svg.id, svg: clone.outerHTML})
+    }).then(function(r){ if(r.ok) console.log("[auto-saved]"); })
+      .catch(function(e){ console.warn("[save-server not running]", e.message); });
+  }
+
+  function scheduleSave() {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveSvg, 500);
+  }
+
+  var dragging = null, offset = {x:0, y:0};
+
+  function svgPoint(evt) {
+    var pt = svg.createSVGPoint();
+    pt.x = evt.clientX; pt.y = evt.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+  }
+
+  function getPos(el) {
+    if (el.tagName === "text") return {x: +el.getAttribute("x"), y: +el.getAttribute("y")};
+    if (el.tagName === "rect") return {x: +el.getAttribute("x"), y: +el.getAttribute("y")};
+    if (el.tagName === "line") return {x: +el.getAttribute("x1"), y: +el.getAttribute("y1")};
+    if (el.tagName === "circle") return {x: +el.getAttribute("cx"), y: +el.getAttribute("cy")};
+    return {x:0, y:0};
+  }
+
+  function setPos(el, dx, dy) {
+    if (el.tagName === "text") {
+      el.setAttribute("x", +el.getAttribute("x") + dx);
+      el.setAttribute("y", +el.getAttribute("y") + dy);
+    } else if (el.tagName === "rect") {
+      el.setAttribute("x", +el.getAttribute("x") + dx);
+      el.setAttribute("y", +el.getAttribute("y") + dy);
+    } else if (el.tagName === "line") {
+      el.setAttribute("x1", +el.getAttribute("x1") + dx);
+      el.setAttribute("y1", +el.getAttribute("y1") + dy);
+      el.setAttribute("x2", +el.getAttribute("x2") + dx);
+      el.setAttribute("y2", +el.getAttribute("y2") + dy);
+    } else if (el.tagName === "circle") {
+      el.setAttribute("cx", +el.getAttribute("cx") + dx);
+      el.setAttribute("cy", +el.getAttribute("cy") + dy);
+    }
+  }
+
+  svg.addEventListener("mousedown", function(e) {
+    var el = e.target;
+    if (el === svg || el.tagName === "defs" || el.tagName === "marker" || el.tagName === "polygon") return;
+    dragging = el;
+    var p = svgPoint(e), pos = getPos(el);
+    offset.x = p.x - pos.x;
+    offset.y = p.y - pos.y;
+    el.style.cursor = "grabbing";
+    e.preventDefault();
+  });
+
+  svg.addEventListener("mousemove", function(e) {
+    if (!dragging) return;
+    var p = svgPoint(e), pos = getPos(dragging);
+    var dx = p.x - offset.x - pos.x;
+    var dy = p.y - offset.y - pos.y;
+    setPos(dragging, dx, dy);
+    offset.x = p.x - getPos(dragging).x;
+    offset.y = p.y - getPos(dragging).y;
+    e.preventDefault();
+  });
+
+  svg.addEventListener("mouseup", function() {
+    if (dragging) {
+      dragging.style.cursor = "";
+      dragging = null;
+      scheduleSave();
+    }
+  });
+
+  svg.addEventListener("mouseleave", function() {
+    if (dragging) { dragging.style.cursor = ""; dragging = null; }
+  });
+
+  /* hover cursor hint */
+  svg.querySelectorAll("text, rect, line, circle").forEach(function(el) {
+    if (el.closest("defs")) return;
+    el.style.cursor = "grab";
+  });
+});
+</script>
+</body>
+</html>
