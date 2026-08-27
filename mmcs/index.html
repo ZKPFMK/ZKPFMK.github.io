@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="MMCS 矩阵 Merkle 树承诺方案详解：单矩阵承诺、多矩阵混合高度注入，以及打开与验证流程。">
+<title>MMCS 承诺：矩阵 Merkle 树承诺方案详解</title>
+<style>
+  :root {
+    --ivory:  #FAF9F5;
+    --paper:  #FFFFFF;
+    --slate:  #141413;
+    --clay:   #D97757;
+    --clay-d: #B85C3E;
+    --oat:    #E3DACC;
+    --olive:  #788C5D;
+    --g100:   #F0EEE6;
+    --g200:   #E6E3DA;
+    --g300:   #A8A69E;
+    --g500:   #5C5B56;
+    --g700:   #3D3D3A;
+    --serif: ui-serif, Georgia, "Times New Roman", Times, serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--ivory);
+    color: var(--slate);
+    font-family: var(--sans);
+    line-height: 1.72;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 28px 120px; }
+  a { color: var(--clay-d); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:hover { color: var(--clay); }
+
+  /* masthead */
+  header.masthead {
+    padding: 52px 0 44px;
+    border-bottom: 1.5px solid var(--g300);
+    margin-bottom: 12px;
+  }
+  .back {
+    display: inline-block;
+    margin-bottom: 36px;
+    color: var(--g500);
+    font-family: var(--mono);
+    font-size: 12px;
+    text-decoration: none;
+  }
+  .back:hover { color: var(--clay); }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--g500);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 22px;
+    height: 1.5px;
+    background: var(--clay);
+  }
+  h1 {
+    max-width: 850px;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(34px, 5vw, 52px);
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+  }
+  h1 em { color: var(--clay); font-style: italic; }
+  .intro {
+    max-width: 760px;
+    margin-top: 16px;
+    color: var(--g700);
+    font-size: 19px;
+    line-height: 1.72;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 18px;
+    margin-top: 20px;
+    color: var(--g500);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .meta a { font-family: var(--sans); font-size: 13px; }
+  nav.toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 22px;
+  }
+  nav.toc a {
+    padding: 6px 14px;
+    border: 1.5px solid var(--g300);
+    border-radius: 999px;
+    background: var(--paper);
+    color: var(--g700);
+    font-size: 13px;
+    text-decoration: none;
+    transition: border-color 120ms, color 120ms;
+  }
+  nav.toc a:hover { border-color: var(--slate); color: var(--slate); }
+
+  /* article */
+  .hero {
+    margin: 36px 0 8px 44px;
+    border: 1.5px solid var(--g300);
+    border-radius: 12px;
+    background: #191b2d;
+    overflow: hidden;
+  }
+  .hero img { display: block; width: 100%; height: auto; }
+  section { margin-top: 42px; scroll-margin-top: 28px; }
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .sec-head .idx {
+    width: 30px;
+    flex-shrink: 0;
+    color: var(--clay);
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .sec-head h2 {
+    font-family: var(--serif);
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  h3 {
+    margin: 40px 0 12px 44px;
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 500;
+  }
+  p { margin: 12px 0; padding-left: 44px; font-size: 19px; line-height: 1.78; }
+  ol, ul { margin: 14px 0; padding-left: 68px; }
+  li { margin: 8px 0; font-size: 19px; line-height: 1.72; }
+  code {
+    padding: 0.08em 0.3em;
+    border-radius: 4px;
+    background: var(--g100);
+    font-family: var(--mono);
+    font-size: 0.88em;
+  }
+  .diagram {
+    margin: 24px 0 24px 44px;
+    border: 1.5px solid var(--g300);
+    border-radius: 12px;
+    background: var(--paper);
+    overflow-x: auto;
+  }
+  .diagram pre {
+    width: max-content;
+    min-width: 100%;
+    padding: 22px 24px;
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre;
+  }
+  .note {
+    margin: 20px 0 20px 44px;
+    padding: 16px 18px;
+    border-left: 3px solid var(--clay);
+    border-radius: 0 10px 10px 0;
+    background: var(--paper);
+    font-size: 19px;
+    line-height: 1.78;
+  }
+  .note strong { color: var(--clay-d); }
+  .source-note {
+    margin: 56px 0 0 44px;
+    padding: 18px 20px;
+    border: 1px solid var(--g300);
+    border-radius: 10px;
+    color: var(--g500);
+    background: var(--g100);
+    font-size: 14px;
+  }
+  footer {
+    margin-top: 80px;
+    padding-top: 28px;
+    border-top: 1.5px solid var(--g300);
+    color: var(--g500);
+    font-family: var(--serif);
+    font-size: 12px;
+    font-style: italic;
+    text-align: center;
+  }
+
+  @media (max-width: 600px) {
+    .wrap { padding: 0 20px 80px; }
+    header.masthead { padding-top: 32px; }
+    .back { margin-bottom: 28px; }
+    .sec-head .idx { display: none; }
+    p, h3, .hero, .diagram, .note, .source-note { margin-left: 0; padding-left: 0; }
+    .note { padding: 14px 16px; }
+    .source-note { padding: 16px; }
+    ol, ul { padding-left: 24px; }
+    .diagram pre { padding: 18px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <a class="back" href="../">← 返回文章列表</a>
+    <div class="eyebrow">Technical Blog · Cryptography</div>
+    <h1>MMCS 承诺：<em>矩阵 Merkle 树</em>承诺方案详解</h1>
+    <p class="intro">如何为单个或多个矩阵构建统一的 Merkle 承诺，并高效验证矩阵中任意一行的数据确实属于被承诺的内容。</p>
+    <div class="meta">
+      <time datetime="2026-08">2026-08</time>
+      <a href="https://zhuanlan.zhihu.com/p/2032400665809507295" rel="external noopener">知乎原文 ↗</a>
+    </div>
+    <nav class="toc" aria-label="文章目录">
+      <a href="#background">问题背景</a>
+      <a href="#single-matrix">单矩阵承诺</a>
+      <a href="#single-open">打开与验证</a>
+      <a href="#multi-matrix">多矩阵承诺</a>
+      <a href="#multi-open">多矩阵验证</a>
+    </nav>
+  </header>
+
+  <figure class="hero">
+    <img src="cover.jpg" width="2560" height="1440" alt="MMCS 打开与验证流程：Prover 提交根节点，Verifier 查询行数据并验证 Merkle 路径" loading="eager">
+  </figure>
+
+  <main>
+    <section id="background">
+      <div class="sec-head"><span class="idx">01</span><h2>问题背景</h2></div>
+      <p>如何使用 Merkle 树为单个或多个矩阵进行承诺，使得承诺后数据不可篡改，且可以高效验证矩阵中任意一行的数据确实属于被承诺的内容？</p>
+
+      <div class="diagram"><pre>Prover                                          Verifier
+   ------                                          --------
+
+                                +-----------+
+              (1) Root = Commit(| m00   m01 |)
+                                | m10   m11 |
+                                +-----------+
+   -------------------------------------------------&gt;
+
+                     (2) Query: row 0
+   &lt;-------------------------------------------------
+
+              (3) Send: (m00, m01), proof
+   -------------------------------------------------&gt;
+
+                                   (4) rebuild Root'
+                                       check Root' == Root</pre></div>
+    </section>
+
+    <section id="single-matrix">
+      <div class="sec-head"><span class="idx">02</span><h2>单矩阵 Merkle 树构建</h2></div>
+      <p>如何将单个矩阵构建成一棵 Merkle 树，从而得到一个固定长度的承诺值？以 4 行 × 3 列矩阵为例：</p>
+
+      <div class="diagram"><pre>Matrix Rows           Leaf Digests                 Merkle Tree
+
+[a0, a1, a2]  --&gt;  H(a0,a1,a2) = d0  --+
+                                       +--  H(d0,d1) = n0  --+
+[b0, b1, b2]  --&gt;  H(b0,b1,b2) = d1  --+                     |
+                                                             +--  H(n0,n1) = Root
+[c0, c1, c2]  --&gt;  H(c0,c1,c2) = d2  --+                     |
+                                       +--  H(d2,d3) = n1  --+
+[d0, d1, d2]  --&gt;  H(d0,d1,d2) = d3  --+
+
+H = hash function</pre></div>
+
+      <p>从图中可以看出构建过程分为三个阶段：</p>
+      <ol>
+        <li><strong>叶子层生成</strong>：矩阵的每一行通过哈希函数 H 映射为摘要（d₀, d₁, d₂, d₃），这些摘要构成 Merkle 树的叶子节点。</li>
+        <li><strong>逐层压缩</strong>：相邻的两个摘要通过哈希函数 H 合并。例如 d₀ 和 d₁ 合并为 n₀，d₂ 和 d₃ 合并为 n₁。</li>
+        <li><strong>根节点生成</strong>：继续向上压缩，直到只剩一个根节点，即为承诺值 Root。</li>
+      </ol>
+      <p>对于 4 行矩阵，从叶子到根需要 2 次压缩，树的高度为 2 层。一般地，对于 N 行矩阵，树的高度为 log₂(N) 层。</p>
+
+      <h3 id="single-open">打开与验证</h3>
+      <p><strong>打开（Open）</strong>：给定行索引，返回该行的原始值和从叶子到根的 Merkle 路径（兄弟节点序列）。</p>
+
+      <div class="diagram"><pre>Open row 1:
+              Root                  known (commitment)
+          ┌────┴────┐
+         n0        [n1]             need: n1 (sibling)
+      ┌──┴──┐    ┌──┴──┐
+    [d0]    d1   d2    d3           need: d0 (sibling)
+             |
+        [b0, b1, b2]
+
+  Merkle path  = [d0, n1]
+  Row raw data = [b0, b1, b2]</pre></div>
+
+      <p>以打开第 1 行为例：</p>
+      <ul>
+        <li><strong>叶子层</strong>：当前节点是 <code>d₁</code>（通过对行原始值计算哈希得到），需要兄弟节点 <code>d₀</code> 来向上重建。</li>
+        <li><strong>第 1 层</strong>：当前节点是 <code>n₀</code>（由 <code>d₀</code> 和 <code>d₁</code> 压缩得到），需要兄弟节点 <code>n₁</code> 来向上重建根节点，验证根节点是否与承诺值相同。</li>
+      </ul>
+      <div class="note">Merkle 路径 <code>[d₀, n₁]</code> 包含了从叶子到根路径上所有兄弟节点，验证者可以用它重建出 Root。</div>
+    </section>
+
+    <section id="multi-matrix">
+      <div class="sec-head"><span class="idx">03</span><h2>多矩阵承诺：混合高度注入</h2></div>
+      <p>如何将多个不同行数的矩阵承诺到同一棵 Merkle 树中，使得它们共享同一个承诺值？以矩阵 A（4 行）和矩阵 B（2 行）为例：</p>
+
+      <div class="diagram"><pre>Matrix A (4 rows x 3 cols):          Matrix B (2 rows x 2 cols):
+  +---------------------------+         +---------------------+
+  | row0: a00  a01  a02       |         | row0: b00  b01      |
+  | row1: a10  a11  a12       |         | row1: b10  b11      |
+  | row2: a20  a21  a22       |         +---------------------+
+  | row3: a30  a31  a32       |
+  +---------------------------+
+
+  Merkle tree construction:
+
+  [a00,a01,a02] --&gt; d0 --+
+                          +-- H(d0,d1)=t0 ---+
+  [a10,a11,a12] --&gt; d1 --+                   +-- H(t0,i0)=n0 --+
+  [b00,b01]     --&gt; i0 ----------------------+                 |
+  [a20,a21,a22] --&gt; d2 --+                                     |-- H(n0,n1)=Root
+                          +-- H(d2,d3)=t1 ---+                 |
+  [a30,a31,a32] --&gt; d3 --+                   +-- H(t1,i1)=n1 --+
+  [b10,b11]     --&gt; i1 ----------------------+
+
+  H = hash function</pre></div>
+
+      <p>从图中可以看出构建过程分为多个阶段：</p>
+      <ul>
+        <li><strong>叶子层生成</strong>：矩阵 A 的每一行通过哈希函数映射为叶子摘要 <code>d₀, d₁, d₂, d₃</code>。</li>
+        <li><strong>第 1 层哈希</strong>：相邻叶子节点哈希得到中间节点 <code>t₀ = H(d₀, d₁)</code> 和 <code>t₁ = H(d₂, d₃)</code>。</li>
+        <li><strong>第 2 层注入</strong>：矩阵 B 的行哈希 <code>i₀, i₁</code> 与中间节点哈希得到 <code>n₀ = H(t₀, i₀)</code> 和 <code>n₁ = H(t₁, i₁)</code>。</li>
+        <li><strong>根节点生成</strong>：<code>n₀</code> 和 <code>n₁</code> 哈希得到最终的承诺值 Root。</li>
+      </ul>
+      <div class="note"><strong>注入的关键特点：</strong>矩阵 B 不参与叶子层构建，而是在哈希到节点数等于其行数时注入。</div>
+
+      <h3 id="multi-open">打开与验证</h3>
+      <p><strong>打开（Open）</strong>：给定行索引，返回所有矩阵在该索引对应的行原始值和 Merkle 路径。以打开第 <code>i = 2</code> 行为例：</p>
+
+      <div class="diagram"><pre>Open row i = 2  (Matrix A row index = 2,  Matrix B row index = 2 &gt;&gt; 1 = 1):
+
+                            Root                     known (commitment)
+                    ┌────────┴───────┐
+                  [n0]               n1             need: n0 (sibling)
+              ┌────┴────┐       ┌────┴────┐
+             t0        i0      t1        i1          need: i1 (inject sibling)
+          ┌──┴──┐           ┌──┴──┐       |
+         d0     d1         d2   [d3]  [b10, b11]
+                            |
+                     [a20, a21, a22]
+
+  Merkle path        = [d3, n0]
+  Matrix A row data  = [a20, a21, a22]
+  Matrix B row data  = [b10, b11]</pre></div>
+
+      <p><strong>验证（Verify）</strong>：用 Merkle 路径从叶子重建到根，验证过程与承诺时的注入过程对称：</p>
+      <ul>
+        <li><strong>Layer 0（数据层）</strong>：当前节点是 <code>d₂</code>（通过对矩阵 A 的第二行哈希得到），需要兄弟节点 <code>d₃</code> 来向上重建。</li>
+        <li><strong>Layer 1</strong>：当前节点是 <code>t₁</code>（由 <code>d₂</code> 和 <code>d₃</code> 压缩得到），需要注入点兄弟 <code>i₁</code>（通过对矩阵 B 的第一行哈希得到）来向上重建。</li>
+        <li><strong>Layer 2</strong>：当前节点是 <code>n₁</code>（由 <code>t₁</code> 和 <code>i₁</code> 压缩得到），需要兄弟节点 <code>n₀</code> 来向上重建根节点。</li>
+        <li><strong>Layer 3（根）</strong>：由 <code>n₀</code> 和 <code>n₁</code> 压缩得到 Root，验证根节点是否与承诺值相同。</li>
+      </ul>
+      <div class="note">Merkle 路径 <code>[d₃, n₀]</code> 包含了从叶子到根路径上所有兄弟节点（包括注入点兄弟），验证者可以用它重建出 Root。</div>
+    </section>
+
+    <aside class="source-note">本文由作者发布于知乎，现已恢复并存档到本站。<a href="https://zhuanlan.zhihu.com/p/2032400665809507295" rel="external noopener">查看知乎原文</a>。</aside>
+  </main>
+
+  <footer>Cryptography Notes</footer>
+</div>
+</body>
+</html>
