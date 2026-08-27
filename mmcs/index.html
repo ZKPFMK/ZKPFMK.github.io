@@ -166,15 +166,64 @@
     background: var(--paper);
     overflow-x: auto;
   }
-  .diagram pre {
-    width: max-content;
-    min-width: 100%;
-    padding: 22px 24px;
+  .diagram svg {
+    display: block;
+    width: 100%;
+    min-width: 760px;
+    height: auto;
+  }
+  .diagram .edge {
+    fill: none;
+    stroke: var(--g300);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .diagram .edge-accent { stroke: var(--clay); stroke-width: 3; }
+  .diagram .edge-inject { stroke: var(--olive); stroke-width: 3; stroke-dasharray: 7 6; }
+  .diagram .node {
+    fill: var(--paper);
+    stroke: var(--g300);
+    stroke-width: 1.6;
+  }
+  .diagram .node-accent { fill: #FFF3ED; stroke: var(--clay); stroke-width: 2.2; }
+  .diagram .node-needed { fill: #FCEEE4; stroke: var(--clay-d); stroke-width: 2.2; }
+  .diagram .node-inject { fill: #EEF3E8; stroke: var(--olive); stroke-width: 2.2; }
+  .diagram .node-root { fill: var(--slate); stroke: var(--slate); stroke-width: 1.8; }
+  .diagram .node-muted { fill: var(--g100); stroke: var(--g300); stroke-width: 1.5; }
+  .diagram .label {
+    fill: var(--slate);
+    font-family: var(--sans);
+    font-size: 15px;
+    text-anchor: middle;
+    dominant-baseline: middle;
+  }
+  .diagram .label-mono {
+    fill: var(--slate);
     font-family: var(--mono);
     font-size: 14px;
-    line-height: 1.6;
-    white-space: pre;
+    text-anchor: middle;
+    dominant-baseline: middle;
   }
+  .diagram .label-small {
+    fill: var(--g500);
+    font-family: var(--sans);
+    font-size: 12px;
+    text-anchor: middle;
+  }
+  .diagram .label-left { text-anchor: start; }
+  .diagram .label-light { fill: var(--paper); }
+  .diagram .label-clay { fill: var(--clay-d); font-weight: 650; }
+  .diagram .label-olive { fill: var(--olive); font-weight: 650; }
+  .diagram .section-label {
+    fill: var(--g500);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .diagram .panel { fill: var(--g100); stroke: var(--g200); stroke-width: 1.2; }
+  .diagram .badge { fill: var(--paper); stroke: var(--g300); stroke-width: 1.2; }
   .note {
     margin: 20px 0 20px 44px;
     padding: 16px 18px;
@@ -214,7 +263,7 @@
     .note { padding: 14px 16px; }
     .source-note { padding: 16px; }
     ol, ul { padding-left: 24px; }
-    .diagram pre { padding: 18px; font-size: 12px; }
+    .diagram svg { min-width: 720px; }
   }
 </style>
 </head>
@@ -248,40 +297,117 @@
       <div class="sec-head"><span class="idx">01</span><h2>问题背景</h2></div>
       <p>如何使用 Merkle 树为单个或多个矩阵进行承诺，使得承诺后数据不可篡改，且可以高效验证矩阵中任意一行的数据确实属于被承诺的内容？</p>
 
-      <div class="diagram"><pre>Prover                                          Verifier
-   ------                                          --------
+      <div class="diagram">
+        <svg viewBox="0 0 900 390" role="img" aria-labelledby="protocol-title protocol-desc">
+          <title id="protocol-title">MMCS 承诺、查询、打开和验证流程</title>
+          <desc id="protocol-desc">Prover 向 Verifier 提交矩阵的 Merkle 根；Verifier 查询第零行；Prover 返回行数据和证明；Verifier 重建根并比较。</desc>
+          <defs>
+            <marker id="protocol-arrow-clay" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+              <polygon points="0 0, 9 3.5, 0 7" fill="#D97757"/>
+            </marker>
+            <marker id="protocol-arrow-olive" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+              <polygon points="0 0, 9 3.5, 0 7" fill="#788C5D"/>
+            </marker>
+          </defs>
 
-                                +-----------+
-              (1) Root = Commit(| m00   m01 |)
-                                | m10   m11 |
-                                +-----------+
-   -------------------------------------------------&gt;
+          <rect class="panel" x="32" y="30" width="210" height="330" rx="14"/>
+          <rect class="panel" x="658" y="30" width="210" height="330" rx="14"/>
+          <text class="section-label" x="58" y="62">PROVER</text>
+          <text class="section-label" x="684" y="62">VERIFIER</text>
+          <text class="label label-left" x="58" y="91">持有矩阵数据</text>
+          <text class="label label-left" x="684" y="91">持有承诺 Root</text>
 
-                     (2) Query: row 0
-   &lt;-------------------------------------------------
+          <rect class="node-accent" x="75" y="124" width="126" height="82" rx="10"/>
+          <text class="label-mono" x="138" y="148">m₀₀  m₀₁</text>
+          <text class="label-mono" x="138" y="178">m₁₀  m₁₁</text>
+          <text class="label-small" x="138" y="222">被承诺的矩阵</text>
 
-              (3) Send: (m00, m01), proof
-   -------------------------------------------------&gt;
+          <rect class="node-root" x="707" y="126" width="112" height="42" rx="21"/>
+          <text class="label-mono label-light" x="763" y="148">Root</text>
 
-                                   (4) rebuild Root'
-                                       check Root' == Root</pre></div>
+          <line class="edge edge-accent" x1="212" y1="147" x2="694" y2="147" marker-end="url(#protocol-arrow-clay)"/>
+          <rect class="badge" x="344" y="119" width="208" height="28" rx="14"/>
+          <text class="label-small" x="448" y="137">① Commit(matrix) → Root</text>
+
+          <line class="edge edge-inject" x1="694" y1="223" x2="212" y2="223" marker-end="url(#protocol-arrow-olive)"/>
+          <rect class="badge" x="370" y="195" width="156" height="28" rx="14"/>
+          <text class="label-small" x="448" y="213">② Query: row 0</text>
+
+          <line class="edge edge-accent" x1="212" y1="294" x2="694" y2="294" marker-end="url(#protocol-arrow-clay)"/>
+          <rect class="badge" x="327" y="266" width="242" height="28" rx="14"/>
+          <text class="label-small" x="448" y="284">③ row data + Merkle proof</text>
+
+          <rect class="node-inject" x="697" y="255" width="132" height="84" rx="10"/>
+          <text class="label" x="763" y="278">④ 重建 Root′</text>
+          <text class="label-mono" x="763" y="304">Root′ = Root</text>
+          <text class="label-small label-olive" x="763" y="328">验证通过</text>
+        </svg>
+      </div>
     </section>
 
     <section id="single-matrix">
       <div class="sec-head"><span class="idx">02</span><h2>单矩阵 Merkle 树构建</h2></div>
       <p>如何将单个矩阵构建成一棵 Merkle 树，从而得到一个固定长度的承诺值？以 4 行 × 3 列矩阵为例：</p>
 
-      <div class="diagram"><pre>Matrix Rows           Leaf Digests                 Merkle Tree
+      <div class="diagram">
+        <svg viewBox="0 0 900 500" role="img" aria-labelledby="single-tree-title single-tree-desc">
+          <title id="single-tree-title">单矩阵 Merkle 树构建</title>
+          <desc id="single-tree-desc">四行矩阵分别哈希成四个叶子摘要，相邻摘要逐层哈希，最终得到固定长度的 Root。</desc>
 
-[a0, a1, a2]  --&gt;  H(a0,a1,a2) = d0  --+
-                                       +--  H(d0,d1) = n0  --+
-[b0, b1, b2]  --&gt;  H(b0,b1,b2) = d1  --+                     |
-                                                             +--  H(n0,n1) = Root
-[c0, c1, c2]  --&gt;  H(c0,c1,c2) = d2  --+                     |
-                                       +--  H(d2,d3) = n1  --+
-[d0, d1, d2]  --&gt;  H(d0,d1,d2) = d3  --+
+          <text class="section-label" x="48" y="48">MATRIX ROWS</text>
+          <text class="section-label" x="305" y="48">LEAF DIGESTS</text>
+          <text class="section-label" x="520" y="48">MERKLE TREE</text>
 
-H = hash function</pre></div>
+          <rect class="panel" x="28" y="72" width="206" height="392" rx="14"/>
+          <rect class="node" x="52" y="101" width="158" height="50" rx="9"/>
+          <rect class="node" x="52" y="190" width="158" height="50" rx="9"/>
+          <rect class="node" x="52" y="279" width="158" height="50" rx="9"/>
+          <rect class="node" x="52" y="368" width="158" height="50" rx="9"/>
+          <text class="label-mono" x="131" y="127">[a₀, a₁, a₂]</text>
+          <text class="label-mono" x="131" y="216">[b₀, b₁, b₂]</text>
+          <text class="label-mono" x="131" y="305">[c₀, c₁, c₂]</text>
+          <text class="label-mono" x="131" y="394">[d₀, d₁, d₂]</text>
+
+          <line class="edge" x1="210" y1="126" x2="304" y2="126"/>
+          <line class="edge" x1="210" y1="215" x2="304" y2="215"/>
+          <line class="edge" x1="210" y1="304" x2="304" y2="304"/>
+          <line class="edge" x1="210" y1="393" x2="304" y2="393"/>
+          <text class="label-small" x="257" y="116">H(row)</text>
+          <text class="label-small" x="257" y="205">H(row)</text>
+          <text class="label-small" x="257" y="294">H(row)</text>
+          <text class="label-small" x="257" y="383">H(row)</text>
+
+          <rect class="node-accent" x="304" y="106" width="74" height="40" rx="20"/>
+          <rect class="node-accent" x="304" y="195" width="74" height="40" rx="20"/>
+          <rect class="node-accent" x="304" y="284" width="74" height="40" rx="20"/>
+          <rect class="node-accent" x="304" y="373" width="74" height="40" rx="20"/>
+          <text class="label-mono label-clay" x="341" y="127">d₀</text>
+          <text class="label-mono label-clay" x="341" y="216">d₁</text>
+          <text class="label-mono label-clay" x="341" y="305">d₂</text>
+          <text class="label-mono label-clay" x="341" y="394">d₃</text>
+
+          <path class="edge" d="M378 126 H438 Q458 126 458 146 V171 Q458 191 478 191 H510"/>
+          <path class="edge" d="M378 215 H438 Q458 215 458 195 V191"/>
+          <path class="edge" d="M378 304 H438 Q458 304 458 324 V348 Q458 368 478 368 H510"/>
+          <path class="edge" d="M378 393 H438 Q458 393 458 373 V368"/>
+          <rect class="node" x="510" y="171" width="76" height="40" rx="20"/>
+          <rect class="node" x="510" y="348" width="76" height="40" rx="20"/>
+          <text class="label-mono" x="548" y="192">n₀</text>
+          <text class="label-mono" x="548" y="369">n₁</text>
+          <text class="label-small" x="458" y="165">H(d₀,d₁)</text>
+          <text class="label-small" x="458" y="343">H(d₂,d₃)</text>
+
+          <path class="edge edge-accent" d="M586 191 H648 Q668 191 668 211 V260"/>
+          <path class="edge edge-accent" d="M586 368 H648 Q668 368 668 348 V260"/>
+          <rect class="node-root" x="704" y="239" width="124" height="44" rx="22"/>
+          <line class="edge edge-accent" x1="668" y1="260" x2="704" y2="260"/>
+          <text class="label-mono label-light" x="766" y="261">Root</text>
+          <text class="label-small" x="668" y="232">H(n₀,n₁)</text>
+
+          <rect class="badge" x="520" y="426" width="308" height="36" rx="18"/>
+          <text class="label-small" x="674" y="449">4 行 → 2 层压缩 → 1 个固定长度承诺</text>
+        </svg>
+      </div>
 
       <p>从图中可以看出构建过程分为三个阶段：</p>
       <ol>
@@ -294,17 +420,55 @@ H = hash function</pre></div>
       <h3 id="single-open">打开与验证</h3>
       <p><strong>打开（Open）</strong>：给定行索引，返回该行的原始值和从叶子到根的 Merkle 路径（兄弟节点序列）。</p>
 
-      <div class="diagram"><pre>Open row 1:
-              Root                  known (commitment)
-          ┌────┴────┐
-         n0        [n1]             need: n1 (sibling)
-      ┌──┴──┐    ┌──┴──┐
-    [d0]    d1   d2    d3           need: d0 (sibling)
-             |
-        [b0, b1, b2]
+      <div class="diagram">
+        <svg viewBox="0 0 900 560" role="img" aria-labelledby="single-open-title single-open-desc">
+          <title id="single-open-title">打开并验证矩阵第 1 行</title>
+          <desc id="single-open-desc">对第 1 行数据哈希得到 d1，结合证明中的兄弟节点 d0 和 n1，逐层重建已知的 Root。</desc>
 
-  Merkle path  = [d0, n1]
-  Row raw data = [b0, b1, b2]</pre></div>
+          <text class="section-label" x="42" y="48">OPEN ROW 1</text>
+          <rect class="badge" x="660" y="30" width="198" height="36" rx="18"/>
+          <circle cx="685" cy="48" r="6" fill="#D97757"/>
+          <text class="label-small label-left" x="701" y="52">橙色节点 = Merkle proof</text>
+
+          <rect class="node-root" x="388" y="62" width="124" height="44" rx="22"/>
+          <text class="label-mono label-light" x="450" y="85">Root</text>
+          <text class="label-small" x="450" y="126">已知承诺</text>
+
+          <line class="edge edge-accent" x1="450" y1="106" x2="294" y2="174"/>
+          <line class="edge edge-accent" x1="450" y1="106" x2="606" y2="174"/>
+          <rect class="node" x="252" y="164" width="84" height="42" rx="21"/>
+          <rect class="node-needed" x="564" y="164" width="84" height="42" rx="21"/>
+          <text class="label-mono" x="294" y="186">n₀</text>
+          <text class="label-mono label-clay" x="606" y="186">n₁</text>
+          <text class="label-small label-clay" x="606" y="226">proof[1]</text>
+
+          <line class="edge edge-accent" x1="294" y1="206" x2="208" y2="293"/>
+          <line class="edge edge-accent" x1="294" y1="206" x2="380" y2="293"/>
+          <line class="edge" x1="606" y1="206" x2="534" y2="293"/>
+          <line class="edge" x1="606" y1="206" x2="678" y2="293"/>
+          <rect class="node-needed" x="170" y="283" width="76" height="40" rx="20"/>
+          <rect class="node-accent" x="342" y="283" width="76" height="40" rx="20"/>
+          <rect class="node-muted" x="496" y="283" width="76" height="40" rx="20"/>
+          <rect class="node-muted" x="640" y="283" width="76" height="40" rx="20"/>
+          <text class="label-mono label-clay" x="208" y="304">d₀</text>
+          <text class="label-mono label-clay" x="380" y="304">d₁</text>
+          <text class="label-mono" x="534" y="304">d₂</text>
+          <text class="label-mono" x="678" y="304">d₃</text>
+          <text class="label-small label-clay" x="208" y="344">proof[0]</text>
+          <text class="label-small label-clay" x="380" y="344">H(row 1)</text>
+
+          <line class="edge edge-accent" x1="380" y1="323" x2="380" y2="391"/>
+          <rect class="node-accent" x="294" y="391" width="172" height="50" rx="10"/>
+          <text class="label-mono" x="380" y="417">[b₀, b₁, b₂]</text>
+          <text class="label-small" x="380" y="462">被打开的原始行数据</text>
+
+          <rect class="panel" x="536" y="382" width="282" height="128" rx="12"/>
+          <text class="section-label" x="560" y="411">REBUILD</text>
+          <text class="label-mono label-left" x="560" y="440">d₁ + d₀ → n₀</text>
+          <text class="label-mono label-left" x="560" y="468">n₀ + n₁ → Root′</text>
+          <text class="label label-left label-olive" x="560" y="495">Root′ = Root ✓</text>
+        </svg>
+      </div>
 
       <p>以打开第 1 行为例：</p>
       <ul>
@@ -318,26 +482,84 @@ H = hash function</pre></div>
       <div class="sec-head"><span class="idx">03</span><h2>多矩阵承诺：混合高度注入</h2></div>
       <p>如何将多个不同行数的矩阵承诺到同一棵 Merkle 树中，使得它们共享同一个承诺值？以矩阵 A（4 行）和矩阵 B（2 行）为例：</p>
 
-      <div class="diagram"><pre>Matrix A (4 rows x 3 cols):          Matrix B (2 rows x 2 cols):
-  +---------------------------+         +---------------------+
-  | row0: a00  a01  a02       |         | row0: b00  b01      |
-  | row1: a10  a11  a12       |         | row1: b10  b11      |
-  | row2: a20  a21  a22       |         +---------------------+
-  | row3: a30  a31  a32       |
-  +---------------------------+
+      <div class="diagram">
+        <svg viewBox="0 0 980 650" role="img" aria-labelledby="multi-tree-title multi-tree-desc">
+          <title id="multi-tree-title">两个不同行数矩阵的混合高度注入</title>
+          <desc id="multi-tree-desc">矩阵 A 的四行形成叶子层；压缩到两个节点时，矩阵 B 的两行摘要分别注入；随后继续压缩得到共同的 Root。</desc>
 
-  Merkle tree construction:
+          <text class="section-label" x="42" y="44">MIXED-HEIGHT INJECTION</text>
+          <rect class="badge" x="640" y="25" width="134" height="34" rx="17"/>
+          <circle cx="663" cy="42" r="6" fill="#D97757"/>
+          <text class="label-small label-left" x="678" y="46">Matrix A</text>
+          <rect class="badge" x="786" y="25" width="154" height="34" rx="17"/>
+          <circle cx="809" cy="42" r="6" fill="#788C5D"/>
+          <text class="label-small label-left" x="824" y="46">Matrix B 注入</text>
 
-  [a00,a01,a02] --&gt; d0 --+
-                          +-- H(d0,d1)=t0 ---+
-  [a10,a11,a12] --&gt; d1 --+                   +-- H(t0,i0)=n0 --+
-  [b00,b01]     --&gt; i0 ----------------------+                 |
-  [a20,a21,a22] --&gt; d2 --+                                     |-- H(n0,n1)=Root
-                          +-- H(d2,d3)=t1 ---+                 |
-  [a30,a31,a32] --&gt; d3 --+                   +-- H(t1,i1)=n1 --+
-  [b10,b11]     --&gt; i1 ----------------------+
+          <rect class="node-root" x="428" y="70" width="124" height="44" rx="22"/>
+          <text class="label-mono label-light" x="490" y="93">Root</text>
 
-  H = hash function</pre></div>
+          <line class="edge edge-accent" x1="490" y1="114" x2="310" y2="162"/>
+          <line class="edge edge-accent" x1="490" y1="114" x2="670" y2="162"/>
+          <rect class="node" x="268" y="152" width="84" height="42" rx="21"/>
+          <rect class="node" x="628" y="152" width="84" height="42" rx="21"/>
+          <text class="label-mono" x="310" y="174">n₀</text>
+          <text class="label-mono" x="670" y="174">n₁</text>
+          <text class="label-small" x="490" y="142">H(n₀,n₁)</text>
+
+          <line class="edge edge-accent" x1="310" y1="194" x2="220" y2="272"/>
+          <line class="edge edge-inject" x1="310" y1="194" x2="400" y2="272"/>
+          <line class="edge edge-accent" x1="670" y1="194" x2="580" y2="272"/>
+          <line class="edge edge-inject" x1="670" y1="194" x2="760" y2="272"/>
+          <rect class="node-accent" x="178" y="262" width="84" height="42" rx="21"/>
+          <rect class="node-inject" x="358" y="262" width="84" height="42" rx="21"/>
+          <rect class="node-accent" x="538" y="262" width="84" height="42" rx="21"/>
+          <rect class="node-inject" x="718" y="262" width="84" height="42" rx="21"/>
+          <text class="label-mono label-clay" x="220" y="284">t₀</text>
+          <text class="label-mono label-olive" x="400" y="284">i₀</text>
+          <text class="label-mono label-clay" x="580" y="284">t₁</text>
+          <text class="label-mono label-olive" x="760" y="284">i₁</text>
+          <text class="label-small label-olive" x="400" y="325">在 2 节点高度注入</text>
+          <text class="label-small label-olive" x="760" y="325">在 2 节点高度注入</text>
+
+          <line class="edge edge-accent" x1="220" y1="304" x2="160" y2="384"/>
+          <line class="edge edge-accent" x1="220" y1="304" x2="280" y2="384"/>
+          <line class="edge edge-accent" x1="580" y1="304" x2="520" y2="384"/>
+          <line class="edge edge-accent" x1="580" y1="304" x2="640" y2="384"/>
+          <line class="edge edge-inject" x1="400" y1="304" x2="400" y2="486"/>
+          <line class="edge edge-inject" x1="760" y1="304" x2="760" y2="486"/>
+
+          <rect class="node-accent" x="124" y="374" width="72" height="40" rx="20"/>
+          <rect class="node-accent" x="244" y="374" width="72" height="40" rx="20"/>
+          <rect class="node-accent" x="484" y="374" width="72" height="40" rx="20"/>
+          <rect class="node-accent" x="604" y="374" width="72" height="40" rx="20"/>
+          <text class="label-mono label-clay" x="160" y="395">d₀</text>
+          <text class="label-mono label-clay" x="280" y="395">d₁</text>
+          <text class="label-mono label-clay" x="520" y="395">d₂</text>
+          <text class="label-mono label-clay" x="640" y="395">d₃</text>
+
+          <line class="edge edge-accent" x1="160" y1="414" x2="160" y2="486"/>
+          <line class="edge edge-accent" x1="280" y1="414" x2="280" y2="486"/>
+          <line class="edge edge-accent" x1="520" y1="414" x2="520" y2="486"/>
+          <line class="edge edge-accent" x1="640" y1="414" x2="640" y2="486"/>
+
+          <rect class="node" x="102" y="486" width="116" height="48" rx="9"/>
+          <rect class="node" x="222" y="486" width="116" height="48" rx="9"/>
+          <rect class="node-inject" x="346" y="486" width="108" height="48" rx="9"/>
+          <rect class="node" x="462" y="486" width="116" height="48" rx="9"/>
+          <rect class="node" x="582" y="486" width="116" height="48" rx="9"/>
+          <rect class="node-inject" x="706" y="486" width="108" height="48" rx="9"/>
+          <text class="label-mono" x="160" y="511">a₀₀ a₀₁ a₀₂</text>
+          <text class="label-mono" x="280" y="511">a₁₀ a₁₁ a₁₂</text>
+          <text class="label-mono label-olive" x="400" y="511">b₀₀ b₀₁</text>
+          <text class="label-mono" x="520" y="511">a₂₀ a₂₁ a₂₂</text>
+          <text class="label-mono" x="640" y="511">a₃₀ a₃₁ a₃₂</text>
+          <text class="label-mono label-olive" x="760" y="511">b₁₀ b₁₁</text>
+
+          <rect class="panel" x="102" y="565" width="596" height="52" rx="12"/>
+          <text class="label label-left" x="126" y="592">Matrix A：4 行形成叶子层</text>
+          <text class="label label-left label-olive" x="438" y="592">Matrix B：2 行在上一层注入</text>
+        </svg>
+      </div>
 
       <p>从图中可以看出构建过程分为多个阶段：</p>
       <ul>
@@ -351,21 +573,70 @@ H = hash function</pre></div>
       <h3 id="multi-open">打开与验证</h3>
       <p><strong>打开（Open）</strong>：给定行索引，返回所有矩阵在该索引对应的行原始值和 Merkle 路径。以打开第 <code>i = 2</code> 行为例：</p>
 
-      <div class="diagram"><pre>Open row i = 2  (Matrix A row index = 2,  Matrix B row index = 2 &gt;&gt; 1 = 1):
+      <div class="diagram">
+        <svg viewBox="0 0 980 650" role="img" aria-labelledby="multi-open-title multi-open-desc">
+          <title id="multi-open-title">打开多矩阵的第 2 行并重建 Root</title>
+          <desc id="multi-open-desc">矩阵 A 使用第 2 行，矩阵 B 使用索引右移一位后的第 1 行；结合证明中的 d3 和 n0，按注入顺序逐层重建 Root。</desc>
 
-                            Root                     known (commitment)
-                    ┌────────┴───────┐
-                  [n0]               n1             need: n0 (sibling)
-              ┌────┴────┐       ┌────┴────┐
-             t0        i0      t1        i1          need: i1 (inject sibling)
-          ┌──┴──┐           ┌──┴──┐       |
-         d0     d1         d2   [d3]  [b10, b11]
-                            |
-                     [a20, a21, a22]
+          <text class="section-label" x="42" y="44">OPEN ROW i = 2</text>
+          <rect class="badge" x="644" y="25" width="294" height="34" rx="17"/>
+          <text class="label-small" x="791" y="46">Matrix B row = 2 &gt;&gt; 1 = 1</text>
 
-  Merkle path        = [d3, n0]
-  Matrix A row data  = [a20, a21, a22]
-  Matrix B row data  = [b10, b11]</pre></div>
+          <rect class="node-root" x="428" y="70" width="124" height="44" rx="22"/>
+          <text class="label-mono label-light" x="490" y="93">Root</text>
+          <text class="label-small" x="490" y="132">已知承诺</text>
+
+          <line class="edge edge-accent" x1="490" y1="114" x2="310" y2="172"/>
+          <line class="edge edge-accent" x1="490" y1="114" x2="670" y2="172"/>
+          <rect class="node-needed" x="268" y="162" width="84" height="42" rx="21"/>
+          <rect class="node-accent" x="628" y="162" width="84" height="42" rx="21"/>
+          <text class="label-mono label-clay" x="310" y="184">n₀</text>
+          <text class="label-mono label-clay" x="670" y="184">n₁</text>
+          <text class="label-small label-clay" x="310" y="224">proof[1]</text>
+
+          <line class="edge" x1="310" y1="204" x2="220" y2="282"/>
+          <line class="edge" x1="310" y1="204" x2="400" y2="282"/>
+          <line class="edge edge-accent" x1="670" y1="204" x2="580" y2="282"/>
+          <line class="edge edge-inject" x1="670" y1="204" x2="760" y2="282"/>
+          <rect class="node-muted" x="178" y="272" width="84" height="42" rx="21"/>
+          <rect class="node-muted" x="358" y="272" width="84" height="42" rx="21"/>
+          <rect class="node-accent" x="538" y="272" width="84" height="42" rx="21"/>
+          <rect class="node-inject" x="718" y="272" width="84" height="42" rx="21"/>
+          <text class="label-mono" x="220" y="294">t₀</text>
+          <text class="label-mono" x="400" y="294">i₀</text>
+          <text class="label-mono label-clay" x="580" y="294">t₁</text>
+          <text class="label-mono label-olive" x="760" y="294">i₁</text>
+          <text class="label-small label-olive" x="760" y="334">H(Matrix B row 1)</text>
+
+          <line class="edge edge-accent" x1="580" y1="314" x2="520" y2="394"/>
+          <line class="edge edge-accent" x1="580" y1="314" x2="640" y2="394"/>
+          <rect class="node-accent" x="484" y="384" width="72" height="40" rx="20"/>
+          <rect class="node-needed" x="604" y="384" width="72" height="40" rx="20"/>
+          <text class="label-mono label-clay" x="520" y="405">d₂</text>
+          <text class="label-mono label-clay" x="640" y="405">d₃</text>
+          <text class="label-small label-clay" x="640" y="445">proof[0]</text>
+
+          <line class="edge edge-accent" x1="520" y1="424" x2="520" y2="490"/>
+          <line class="edge edge-inject" x1="760" y1="314" x2="760" y2="490"/>
+          <rect class="node-accent" x="447" y="490" width="146" height="50" rx="10"/>
+          <rect class="node-inject" x="697" y="490" width="126" height="50" rx="10"/>
+          <text class="label-mono" x="520" y="516">a₂₀ a₂₁ a₂₂</text>
+          <text class="label-mono label-olive" x="760" y="516">b₁₀ b₁₁</text>
+          <text class="label-small" x="520" y="560">Matrix A row 2</text>
+          <text class="label-small label-olive" x="760" y="560">Matrix B row 1</text>
+
+          <rect class="panel" x="72" y="354" width="318" height="218" rx="14"/>
+          <text class="section-label" x="98" y="385">REBUILD ROOT</text>
+          <text class="label-mono label-left" x="98" y="420">① d₂ + d₃ → t₁</text>
+          <text class="label-mono label-left" x="98" y="456">② t₁ + i₁ → n₁</text>
+          <text class="label-mono label-left" x="98" y="492">③ n₀ + n₁ → Root′</text>
+          <line class="edge edge-inject" x1="98" y1="517" x2="350" y2="517"/>
+          <text class="label label-left label-olive" x="98" y="548">Root′ = Root ✓</text>
+
+          <rect class="badge" x="447" y="592" width="376" height="34" rx="17"/>
+          <text class="label-small" x="635" y="613">Merkle proof = [d₃, n₀] · 行数据单独提供</text>
+        </svg>
+      </div>
 
       <p><strong>验证（Verify）</strong>：用 Merkle 路径从叶子重建到根，验证过程与承诺时的注入过程对称：</p>
       <ul>
