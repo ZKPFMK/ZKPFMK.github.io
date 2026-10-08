@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Blog</title>
+<meta name="description" content="密码学、零知识证明，以及经济与生活思考的笔记。">
+<title>Notes on Tech &amp; Life</title>
 <style>
   :root {
     --ivory:  #FAF9F5;
@@ -72,10 +73,32 @@
   }
 
   /* ── article list ──────────────── */
-  .articles {
+  .category-section {
     display: flex;
     flex-direction: column;
     gap: 20px;
+  }
+  .category-section + .category-section { margin-top: 60px; }
+  .category-heading {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin: 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--g200);
+  }
+  .category-heading h2 {
+    font-family: var(--serif);
+    font-size: 28px;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+  .category-heading span {
+    color: var(--g500);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
   }
   .article-card {
     display: block;
@@ -140,6 +163,7 @@
   @media (max-width: 600px) {
     .article-card { padding: 20px; }
     .card-title { font-size: 20px; }
+    .category-heading { flex-wrap: wrap; gap: 2px 12px; }
   }
 </style>
 </head>
@@ -147,70 +171,106 @@
 <div class="wrap">
 
   <header class="masthead">
-    <div class="eyebrow">Technical Blog</div>
-    <h1>Cryptography <em>Notes</em></h1>
-    <p class="intro">密码学与零知识证明的学习笔记。</p>
+    <div class="eyebrow">Personal Blog</div>
+    <h1>Tech &amp; Life <em>Notes</em></h1>
+    <p class="intro">密码学、零知识证明，以及经济与生活思考的笔记。</p>
   </header>
 
   <div class="articles">
 
-    <a class="article-card" href="mmcs/">
-      <div class="card-top">
-        <span class="card-tag">Cryptography</span>
-        <span class="card-date">2026-08</span>
-      </div>
-      <div class="card-title">MMCS 承诺：矩阵 Merkle 树承诺方案详解</div>
-      <div class="card-desc">从单矩阵 Merkle 树到多矩阵混合高度注入，详解 MMCS 的承诺、打开与验证流程。</div>
-    </a>
+    <section class="category-section" id="tech" aria-labelledby="tech-heading">
+      <div class="category-heading"><h2 id="tech-heading">技术博客</h2><span>Cryptography &amp; ZK</span></div>
 
-    <a class="article-card" href="zk-industry-2026/">
-      <div class="card-top">
-        <span class="card-tag">ZK Ecosystem</span>
-        <span class="card-date">2026-08</span>
-      </div>
-      <div class="card-title">一张图看懂 2026 ZK 产业链</div>
-      <div class="card-desc">从 Proof Systems、Circuit / zkVM、Proving Infrastructure、Proof Markets 到 Applications，梳理 ZK 从底层证明系统到应用落地的五层产业栈。</div>
-    </a>
+      <a class="article-card" href="mmcs/">
+        <div class="card-top">
+          <span class="card-tag">Cryptography</span>
+          <span class="card-date">2026-08</span>
+        </div>
+        <div class="card-title">MMCS 承诺：矩阵 Merkle 树承诺方案详解</div>
+        <div class="card-desc">从单矩阵 Merkle 树到多矩阵混合高度注入，详解 MMCS 的承诺、打开与验证流程。</div>
+      </a>
 
-    <a class="article-card" href="basefold_v6/basefold1_v6.html">
-      <div class="card-top">
-        <span class="card-tag">Cryptography</span>
-        <span class="card-date">2026-06</span>
-      </div>
-      <div class="card-title">Basefold v6 协议详解 1</div>
-      <div class="card-desc">Basefold v6 系列第一篇 —— 问题背景、Basefold IOPP 与 MLE 求值证明的完整解析。</div>
-    </a>
+      <a class="article-card" href="zk-industry-2026/">
+        <div class="card-top">
+          <span class="card-tag">ZK Ecosystem</span>
+          <span class="card-date">2026-08</span>
+        </div>
+        <div class="card-title">一张图看懂 2026 ZK 产业链</div>
+        <div class="card-desc">从 Proof Systems、Circuit / zkVM、Proving Infrastructure、Proof Markets 到 Applications，梳理 ZK 从底层证明系统到应用落地的五层产业栈。</div>
+      </a>
 
-    <a class="article-card" href="basefold_v6/basefold2_v6.html">
-      <div class="card-top">
-        <span class="card-tag">Cryptography</span>
-        <span class="card-date">2026-06</span>
-      </div>
-      <div class="card-title">Basefold v6 协议详解 2</div>
-      <div class="card-desc">Basefold v6 系列第二篇 —— 矩阵承诺的打开与进阶验证流程。</div>
-    </a>
+      <a class="article-card" href="basefold_v6/basefold1_v6.html">
+        <div class="card-top">
+          <span class="card-tag">Cryptography</span>
+          <span class="card-date">2026-06</span>
+        </div>
+        <div class="card-title">Basefold v6 协议详解 1</div>
+        <div class="card-desc">Basefold v6 系列第一篇 —— 问题背景、Basefold IOPP 与 MLE 求值证明的完整解析。</div>
+      </a>
 
-    <a class="article-card" href="basefold_v5/basefold.html">
-      <div class="card-top">
-        <span class="card-tag">Cryptography</span>
-        <span class="card-date">2026-05</span>
-      </div>
-      <div class="card-title">Basefold v5 协议详解</div>
-      <div class="card-desc">多线性多项式承诺方案 —— 通过完整数值例子，逐步走完 IOPP 承诺、Sumcheck 归约与查询验证的全过程。</div>
-    </a>
+      <a class="article-card" href="basefold_v6/basefold2_v6.html">
+        <div class="card-top">
+          <span class="card-tag">Cryptography</span>
+          <span class="card-date">2026-06</span>
+        </div>
+        <div class="card-title">Basefold v6 协议详解 2</div>
+        <div class="card-desc">Basefold v6 系列第二篇 —— 矩阵承诺的打开与进阶验证流程。</div>
+      </a>
 
-    <a class="article-card" href="fri/fri.html">
-      <div class="card-top">
-        <span class="card-tag">Cryptography</span>
-        <span class="card-date">2026-05</span>
-      </div>
-      <div class="card-title">FRI 协议详解</div>
-      <div class="card-desc">Fast Reed-Solomon IOP of Proximity —— 通过一个完整的数值例子，逐步走完 FRI 协议的承诺阶段与查询阶段。</div>
-    </a>
+      <a class="article-card" href="basefold_v5/basefold.html">
+        <div class="card-top">
+          <span class="card-tag">Cryptography</span>
+          <span class="card-date">2026-05</span>
+        </div>
+        <div class="card-title">Basefold v5 协议详解</div>
+        <div class="card-desc">多线性多项式承诺方案 —— 通过完整数值例子，逐步走完 IOPP 承诺、Sumcheck 归约与查询验证的全过程。</div>
+      </a>
+
+      <a class="article-card" href="fri/fri.html">
+        <div class="card-top">
+          <span class="card-tag">Cryptography</span>
+          <span class="card-date">2026-05</span>
+        </div>
+        <div class="card-title">FRI 协议详解</div>
+        <div class="card-desc">Fast Reed-Solomon IOP of Proximity —— 通过一个完整的数值例子，逐步走完 FRI 协议的承诺阶段与查询阶段。</div>
+      </a>
+
+    </section>
+
+    <section class="category-section" id="essays" aria-labelledby="essays-heading">
+      <div class="category-heading"><h2 id="essays-heading">观点与生活</h2><span>Essays</span></div>
+
+      <a class="article-card" href="public-sector-career-choice/">
+        <div class="card-top">
+          <span class="card-tag">Reprint</span>
+          <span class="card-date">2026-10</span>
+        </div>
+        <div class="card-title">目前形势，进体制是不是最优解？</div>
+        <div class="card-desc">从下海热到考公热，讨论财政条件、职业稳定性与个人能力。作者：孔乙己。</div>
+      </a>
+
+      <a class="article-card" href="consumption-tax-weekends/">
+        <div class="card-top">
+          <span class="card-tag">Economy</span>
+          <span class="card-date">2026-09</span>
+        </div>
+        <div class="card-title">全面双休，为什么绕不开消费税改革？</div>
+        <div class="card-desc">从地方财政激励、淄博烧烤案例和国际经验，讨论消费税后置与全面双休的关系。</div>
+      </a>
+
+      <a class="article-card" href="high-functioning-burnout/">
+        <div class="card-top">
+          <span class="card-tag">Life</span>
+          <span class="card-date">2026-09</span>
+        </div>
+        <div class="card-title">你花了十年爬到高位，却发现越来越空虚</div>
+        <div class="card-desc">从完美主义、身份认同与责任感出发，重新思考如何把精力留给感受生活。</div>
+      </a>
+    </section>
 
   </div>
 
-  <footer>Cryptography Notes</footer>
+  <footer>Tech &amp; Life Notes</footer>
 
 </div>
 </body>

@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#FAF9F5">
+<meta name="description" content="从地方财政激励出发，讨论全面双休与消费税后置之间的关系。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="全面双休，为什么绕不开消费税改革？">
+<meta property="og:description" content="消费发生在哪里，地方能否从中受益？">
+<link rel="canonical" href="https://zkpfmk.github.io/consumption-tax-weekends/">
+<title>全面双休，为什么绕不开消费税改革？ · Tech &amp; Life Notes</title>
+<style>
+  :root {
+    --ivory: #FAF9F5; --paper: #FFFFFF; --ink: #141413;
+    --clay: #D97757; --clay-dark: #B85C3E; --line: #E3DACC;
+    --muted: #5C5B56; --soft: #F0EEE6;
+    --serif: ui-serif, Georgia, "Times New Roman", Times, serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--ivory); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  a { color: var(--clay-dark); text-underline-offset: 3px; }
+  .skip-link { position: fixed; z-index: 2; top: 12px; left: 12px; padding: 8px 12px; background: var(--ink); color: white; transform: translateY(-180%); }
+  .skip-link:focus { transform: translateY(0); }
+  .wrap { width: min(960px, calc(100% - 48px)); margin: 0 auto; }
+  .site-nav { padding: 24px 0; border-bottom: 1px solid var(--line); font: 12px var(--mono); letter-spacing: .06em; }
+  .site-nav a { color: var(--muted); text-decoration: none; }
+  .site-nav a:hover { color: var(--clay-dark); }
+  .masthead { padding: 76px 0 48px; border-bottom: 1px solid var(--line); }
+  .eyebrow { display: flex; align-items: center; gap: 10px; color: var(--clay-dark); font: 11px var(--mono); letter-spacing: .13em; text-transform: uppercase; }
+  .eyebrow::before { content: ""; width: 22px; height: 2px; background: var(--clay); }
+  h1 { max-width: 840px; margin: 20px 0 0; font: 500 clamp(38px, 6vw, 66px)/1.2 var(--serif); letter-spacing: -.025em; }
+  .subtitle { max-width: 760px; margin: 20px 0 0; color: var(--muted); font: 20px/1.65 var(--serif); }
+  .meta { margin-top: 28px; color: var(--muted); font: 12px var(--mono); }
+  .layout { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 64px; padding-top: 48px; }
+  .toc { position: sticky; top: 28px; align-self: start; }
+  .toc-title { margin: 0 0 18px; color: var(--muted); font: 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+  .toc a { display: block; margin: 0 0 17px; color: var(--muted); font-size: 13px; line-height: 1.55; text-decoration: none; }
+  .toc a:hover { color: var(--clay-dark); }
+  .toc span { display: inline-block; width: 30px; color: var(--clay-dark); font: 11px var(--mono); }
+  main { min-width: 0; }
+  .lead { padding: 2px 0 28px; border-bottom: 1px solid var(--line); }
+  p { margin: 0 0 1.15em; font-size: 17px; line-height: 1.95; }
+  .lead p:first-child { font-size: 21px; font-family: var(--serif); }
+  section { padding-top: 58px; scroll-margin-top: 22px; }
+  .section-label { color: var(--clay-dark); font: 12px var(--mono); letter-spacing: .1em; }
+  h2 { margin: 10px 0 28px; font: 500 clamp(27px, 3vw, 35px)/1.35 var(--serif); }
+  h3 { margin: 40px 0 18px; padding-left: 15px; border-left: 3px solid var(--clay); font: 600 21px/1.5 var(--serif); }
+  footer { margin: 80px 0 0; padding: 25px 0 80px; border-top: 1px solid var(--line); color: var(--muted); font: italic 12px var(--serif); text-align: center; }
+  @media (max-width: 760px) {
+    .wrap { width: min(680px, calc(100% - 36px)); }
+    .masthead { padding: 52px 0 34px; }
+    .layout { display: block; padding-top: 30px; }
+    .toc { position: static; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 14px; margin-bottom: 25px; border-bottom: 1px solid var(--line); }
+    .toc-title { display: none; }
+    .toc a { flex: 0 0 auto; max-width: 195px; margin: 0; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); }
+    p { font-size: 16px; line-height: 1.85; }
+    section { padding-top: 45px; }
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#article">跳转到正文</a>
+<div class="wrap">
+  <nav class="site-nav" aria-label="网站导航"><a href="../">← 返回博客首页</a></nav>
+  <header class="masthead">
+    <div class="eyebrow">Economy / Commentary</div>
+    <h1>全面双休，为什么绕不开消费税改革？</h1>
+    <p class="subtitle">从地方财政激励、淄博案例到消费税后置，重新看双休的制度条件。</p>
+    <div class="meta">2026-09-30 · 阅读文章</div>
+  </header>
+  <div class="layout">
+    <nav class="toc" aria-label="文章目录">
+      <div class="toc-title">目录 / Contents</div>
+      <a href="#part-1"><span>01</span>地方为什么缺少动力</a>
+      <a href="#part-2"><span>02</span>淄博烧烤的财政账</a>
+      <a href="#part-3"><span>03</span>景区门票与消费激励</a>
+      <a href="#part-4"><span>04</span>消费税后置：改变利益归属</a>
+      <a href="#part-5"><span>05</span>国际上怎样让税跟着消费走</a>
+      <a href="#part-6"><span>06</span>征管与网购的现实问题</a>
+      <a href="#part-7"><span>07</span>出口与消费地原则</a>
+      <a href="#part-8"><span>08</span>为什么过去在生产环节征税</a>
+      <a href="#part-9"><span>09</span>结语：让激励跟上时代</a>
+    </nav>
+    <main id="article">
+      <div class="lead">
+      <p>全面双休，我是百分之百支持的。但现在硬推，大概率适得其反。指望企业良心发现、自发大批量实现双休，靠不住。而在现有税制下，全面双休缺少一个让地方真心实意去推的利益基础，所以监管很难动力充足。这背后破局的核心，是激励机制的问题。</p>
+      </div>
+      <section id="part-1" aria-labelledby="heading-1">
+        <div class="section-label">01 / 09</div>
+        <h2 id="heading-1">地方为什么缺少动力</h2>
+        <p>为什么？先搞清楚一个事：地方的钱从哪来。</p>
+        <p>你想想，一个工厂，工人加班加点，产量就高，产值就大。产值大了，交的税就多。这个税留在地方，就是地方政府的钱。</p>
+        <p>反过来，你让工厂少加班、多放假，产量下来了，产值下来了，税收也跟着下来了。对地方来说，全面落实双休，短期内的财政收入会受到影响。</p>
+        <p>那有人会说：那地方刺激消费不就行了？消费起来了，税不就多了吗？</p>
+        <p>问题就出在这——消费的税，不进地方的口袋。</p>
+        <p>我先给你介绍一下我们国家的两个主要税种。</p>
+        <p>以2025年为例，增值税，一年大概6.9万亿，中国最大的税种。它是在生产和流通的每个环节征收的，最终买单的是你消费者。但增值税央地是五五分成——中央拿50%，地方拿50%。而地方拿的这50%，是按生产地分的——厂子在哪儿，钱就归哪儿。</p>
+        <p>消费税，一年大概1.69万亿，是对烟、酒、成品油、小汽车这些特定商品额外收的一笔税。它是在生产环节收的——烟厂出厂的时候就交了。而且100%归中央，地方一分钱拿不到。</p>
+        <p>你买一包烟，里面的消费税是完全归中央。</p>
+        <p>这里再给大家看一个更容易理解的例子。你买一台冰箱，里面的增值税，大头归生产地。</p>
+        <p>你在云南买一台浙江产的冰箱，出厂环节那部分税归浙江；云南的超市只对自己加价的那一小截缴税——一台冰箱几千块，价值的大头在出厂那一刻就定了。零售和渠道加价，现在普遍也就十几个点到二十个点——就算往宽了算给到三十个点，出厂环节的增值税，照样占整条链条的四分之三以上。</p>
+        <p>还有一层让云南那份进一步缩水：很多制造业企业在产地注册销售公司，货从产地卖到全国，发票开在产地的销售公司——连流通环节那截增值税，也回流产地。</p>
+        <p>要是你是网上买的，连这零头都没了——最后一环的增值税，归网店注册地，不归你。</p>
+        <p>所以对地方来说：你消费，税可能归别人；你加班多产点东西出来，税归自己。</p>
+      </section>
+      <section id="part-2" aria-labelledby="heading-2">
+        <div class="section-label">02 / 09</div>
+        <h2 id="heading-2">淄博烧烤的财政账</h2>
+        <p>再看一个很多人忽略了结果的我觉得很经典的案例。2023年淄博烧烤火了，3月份财政收入增速高达32%，网上一片欢呼。但你自己去翻财政局的账：一季度淄博的税收收入其实同比下降了4.5%——涨的主要是非税收入和低基数反弹。要知道，非税涨，往往意味着处置资产、盘活存量资源、一次性收入提前入库。今年多收了，明年这格就少了。</p>
+        <p>那游客来了没有？来了。光2023年3月一个月，外地游客480多万人次，旅游收入增长60%。</p>
+        <p>但当地财政人士自己说了句大实话，我引用原话：“烧烤等服务行业对当地财政收入贡献度比较低……不过这对当地经济总量增长有好处。”</p>
+        <p>你品这句话——烧烤拉动的是GDP，不是地方财政收入。 GDP是考核表上的数字，财政收入才是钱袋子里的钱。</p>
+        <p>有人会说：税收有滞后效应，烧烤3月才火，税要过几个月才体现。好，那我们看全年。</p>
+        <p>2023年全年，淄博税收254亿，增长了4.2%。看起来兑现了。但拆开看，这4.2%是怎么来的？</p>
+        <p>六成靠增值税。 增值税涨了46%。但你先别激动——2022年全国搞了大规模留抵退税，就是把企业之前交的税退回去，全国各地上一年的基数都被砸出一个大坑。2023年全国增值税平均涨42%，而淄博的46%只是跟着大盘走，这么火的烧烤也带不来当地明显的税收增长。</p>
+        <p>甚至，游客爆棚的九个月里，淄博企业的利润在萎缩，居民收入相关税收在下降。</p>
+        <p>那住宿餐饮呢？游客总要住酒店、吃饭吧。</p>
+        <p>住宿餐饮税收确实涨了33%。但问题出在两个字：体量。</p>
+        <p>这个行业里，绝大多数是个体户和小微企业。它们要么在免税线以下——月销售额10万以下，一分钱增值税不用交；要么按极低的征收率走——1%就顶天了。</p>
+        <p>而且，酒店餐馆买食材、买酒水，这些上游环节的税，早就归了生产地。肉是外地屠宰场来的，酒是外地酒厂来的，税在出厂那一刻就已经交到别的地方去了。</p>
+        <p>所以淄博能留下的，只有最后那一道零售末端的零星税款。涨33%听着热闹，但压根没有多少可以留下，甚至为了旅游振兴而增加的安保、交通、环卫、宣传这些真金白银的投入都没法覆盖。所以第三产业税收整体只涨了1.8%——这块盘子，拖不动大局。</p>
+        <p>在现行税制下，消费产生的税，大半就不落在发生地。这笔账，结构上就很难转得正。</p>
+      </section>
+      <section id="part-3" aria-labelledby="heading-3">
+        <div class="section-label">03 / 09</div>
+        <h2 id="heading-3">景区门票与消费激励</h2>
+        <p>你看明白淄博这笔账，也就看明白了另一件事——为什么这么多景区，明知道收门票招骂、明知道免门票才能引来客流，就是舍不得免。</p>
+        <p>因为门票是地方实实在在能攥在手里的钱。国有景区，定价权在政府，收入进地方财政或者地方国资的景区公司。而游客免了门票进来之后吃的那顿饭、住的那晚酒店呢？要么是免税线以下的小饭馆，要么是外地连锁品牌——税要么收不上来，要么归了别人。</p>
+        <p>所以尽管地方也懂“免门票引流”的道理，但是引流带来的税不归我，门票钱才归我，积极性必然被打击。</p>
+        <p>所以这里大家也应该很好理解了，搞消费的永远是文旅局、宣传部门那一小批人——因为那只是他们的政绩。政绩这个东西，只让一小批人脸上有光，没法让整个地方系统形成合力。因为除了他们，其他部门在这件事上看不到自己的利益。</p>
+        <p>没有利益，就没有合力。</p>
+        <p>所以，消费者是国家财政极其重要的贡献者，但在地方政府的收入账本里，完全隐身。没有一分钱，是按“消费发生在哪里”来归属地方的。</p>
+      </section>
+      <section id="part-4" aria-labelledby="heading-4">
+        <div class="section-label">04 / 09</div>
+        <h2 id="heading-4">消费税后置：改变利益归属</h2>
+        <p>那有没有一条路？</p>
+        <p>有。而且它不是我个人的畅想——2019年中央文件就写明了方向，2026年政府工作报告还在部署。这条路叫消费税后置，也可以理解为就是消费税消费地征收。</p>
+        <p>该路线的核心就是，消费税从生产环节后移到消费环节，增量部分下划给地方。你在哪儿花钱，新增的税就归哪儿。</p>
+        <p>它不是简单地换个地方收税，背后的关键在于让地方政府发现，只有老百姓有钱、有闲、敢消费，它自己才能收到税。</p>
+        <p>这就是消费税后置要干的事：把地方政府的钱袋子，焊死在老百姓的消费能力上。</p>
+        <p>你可能会说，那地方具体会怎么干？我们也不要去想。真到那种有动力的时刻，各地的执行创造力一定能找到办法。</p>
+        <p>八十年代财政包干时期，地方发现交够中央的，剩下都是自己的，所以没有什么文件教县长们怎么办厂却直接促使乡镇企业爆发；1994年分税制改革，让增值税大头收归中央，地方发现土地出让金不用跟中央分，全留自己。于是地方的热情从拼命办厂，一夜之间转向经营土地。</p>
+        <p>只要利益接通了，基层在执行层面的创造力，从来都是我们改革最可靠的部分。你现在觉得想不出办法，是因为钱袋子还没接上；真到了钱袋子的事，你都不用替他们着急。</p>
+        <p>而现在，因为消费税在生产端征收，地方就算把消费刺激起来了，钱也基本拿不到。而且因为双休了，企业生产的产品少了，征收的税少了，还对地方不利。</p>
+        <p>所以，如果不让消费税在消费地征收，双休就只能是空中楼阁。毕竟现在消费税生产地征收，并且消费税的范围也没有真正扩开的情况下，地方一定是重生产，强制企业必须全面双休可是和自己的钱袋子对着干，怎么可能让地方有足够动力去做呢？</p>
+        <p>当然，讲到这儿，有三个问题，你一定已经想到了。</p>
+        <p>第一，挪到消费地收，面对几千万家小商店，收得上来吗？会不会遍地漏税？</p>
+        <p>第二，现在大家买东西一大半在网上，网上这笔税归谁？</p>
+        <p>第三，我们是制造业和出口大国，这么改，产业会不会受影响？</p>
+        <p>三个问题都问到了点子上。我们一个一个来。</p>
+      </section>
+      <section id="part-5" aria-labelledby="heading-5">
+        <div class="section-label">05 / 09</div>
+        <h2 id="heading-5">国际上怎样让税跟着消费走</h2>
+        <p>先回答第一个：国际上有没有现成的做法？</p>
+        <p>有，而且分三种。你记住一个评判标准就行：钱，离“消费发生的地方”有多近。</p>
+        <p>第一种，钱直接落进消费地的口袋——美国。</p>
+        <p>美国没有增值税，各州收“销售税”，就是你结账时加的那一笔。按什么收？按你的收货地址收。你在哪个城市按下支付键，税就按那个城市的税率算，钱就归那个城市。2018年最高法院裁决之后，连亚马逊、eBay这些平台都被法律强制要求代收——不是平台想做善事，是法律规定。</p>
+        <p>第二种，钱先统一收上来，再按消费地重新分一块——日本。</p>
+        <p>日本消费税10%，其中7.8%归国库，2.2%划给地方。这2.2%怎么分？不是平均分，而是专门设计了一套分账办法：一半看各地实际发生了多少消费，一半看人口，把钱归到“东西真正被买走的地方”。日本没有在收银台收钱，但它国家税收里的一大块，是跟着消费走的。</p>
+        <p>第三种，税跟着消费走，但钱进的是国库——欧盟。</p>
+        <p>欧盟27国的规矩是：一件东西在哪个国家被消费，就按那个国家的税率征税、税归哪个国家。这是欧盟内部交易的规矩，不只是进出口。所以欧洲人钱包一紧，各国财政立刻难看——老百姓的消费就是政府的命脉。但命脉归命脉，钱进的是各国国库，不是哪个城市的口袋。</p>
+        <p>三种看完，规律就出来了。按“钱离消费地有多近”排：</p>
+        <p>美国最近，钱直接落到城市；日本居中，国家税里划一块按消费地分；欧盟再远一步，税跟着消费走但进国库。</p>
+        <p>那我们呢？我们的消费税目前仍在生产环节征收，消费地还没有形成分享机制。</p>
+        <p>所以这不是异想天开。全世界都在往“谁消费、税归谁”这个方向走，行话叫“目的地原则”。我们在国境线上早就这么干了：商品一出口，国内税退掉，到了国外由人家收。我们要补的，只是把这堂课从国境线外搬进国境线内。美国上了三十年，连日本都半只脚迈过去了。</p>
+      </section>
+      <section id="part-6" aria-labelledby="heading-6">
+        <div class="section-label">06 / 09</div>
+        <h2 id="heading-6">征管与网购的现实问题</h2>
+        <p>再回答第二个问题：小商店遍地，漏税怎么办？</p>
+        <p>先给你看最坏的情况。欧盟自己统计：每年增值税漏收1280亿欧元，差不多一成的税收不上来。希腊最严重的时候，漏掉四分之一。消费地征收的漏税风险是真的，人家不遮着。</p>
+        <p>但意大利打了个样。2019年起，意大利规定：企业发票必须先从税务局的系统里过一遍——发票先到税务局，验完才算数。税务局在你开票那一秒，就看见这笔交易。结果：一年内，意大利的增值税缺口缩小10.7个百分点，全欧洲降幅最大。</p>
+        <p>规律就一句话：漏不漏税，不看税设在哪一环，看交易有没有留下数字痕迹。</p>
+        <p>中国什么条件？数电票全国推开，金税四期在跑，交易数据实时进税务系统；移动支付全球第一，你买瓶水都是扫码，每一分钱都有电子记录。再加上可以先从加油站、4S店、连锁超市这些“由大企业管着的终端”收起——这一头的难度，跟盯住烟厂酒厂是同一个量级。</p>
+        <p>最后回答第三个问题：网上买的，税归谁？</p>
+        <p>现在的规矩：归卖家的注册地。你人在云南，买杭州网店的东西，税归杭州。所以有个怪现象——网购越发达，消费地的税漏得越干净。</p>
+        <p>现成的答案还是美国：2018年之后，各州强制平台代收。你在网上下单，平台按你的收货地址自动算税、交给你的城市。这套模式跑了八年，没翻车。中国的技术条件只会比它好。</p>
+      </section>
+      <section id="part-7" aria-labelledby="heading-7">
+        <div class="section-label">07 / 09</div>
+        <h2 id="heading-7">出口与消费地原则</h2>
+        <p>那出口怎么办？这么改，会不会伤了出口？</p>
+        <p>先给你吃颗定心丸：出口这块，我们早就是消费地征收了，执行了几十年，运转得非常顺畅。</p>
+        <p>怎么个“早就是”？</p>
+        <p>看出口退税。一件中国商品卖到国外，它在国内生产流通环节交过的增值税、消费税，离境的时候全部退掉。商品“净身出户”，不带着中国的税出门。到了进口国，再由那个国家的消费者，给那个国家的政府交税。</p>
+        <p>东西在谁的地盘上被消费，税就归谁——这就是消费地原则。其实这也是世贸组织要求的统一的国际贸易的规则，当年我们加入WTO就必须遵守这个规则才行。</p>
+        <p>2025年前8个月，光出口退税我们就退了15766亿，折算全年两万多亿。每年两万多亿退得清清楚楚，这条路一直这样子，从未有让我们产业空心化过。</p>
+        <p>所以关键就一句话：这次改革，动的是“国内消费”的税归谁；出口通道，二十多年来一直如此。</p>
+        <p>那我们支持出口，图的是什么？从来都不是那笔流转税。图的是就业，是产业链的规模效应，是外汇，是制造业在真实订单里练出来的竞争力。这些，消费税改一样都不会碰。</p>
+        <p>而且这里还有一层很妙的关系：正因为出口的税让给了外国消费者，国内的消费地原则，才更该建起来。国境线外，我们替全世界消费者把消费地原则执行得彻彻底底；国境线内，我们也有必要在当下到了不得不去刺激内需消费的节点把这一课做好。</p>
+      </section>
+      <section id="part-8" aria-labelledby="heading-8">
+        <div class="section-label">08 / 09</div>
+        <h2 id="heading-8">为什么过去在生产环节征税</h2>
+        <p>说到这儿，你可能要追问一句：既然消费地征收这么好，为什么1994年最开始，要选生产环节征收？</p>
+        <p>因为在当时，这几乎是唯一的选择。</p>
+        <p>1994年定这套规矩的时候，没有电子发票、没有联网、没有数字支付，征管靠人海战术。在生产环节收消费税，全国就几百家烟厂、酒厂、炼油厂，税务局蹲点就能收齐；放到零售环节，面对的是几百万家小商店，根本收不上来。而且那时候中央财政一度紧张到要向地方借钱，急需一个大税种捏在手里保全国统筹。</p>
+        <p>所以生产环节征收，在当年不但是理性的，甚至是唯一可行的。制度没有对错，只有适不适合当时的条件。</p>
+        <p>现在征管的条件变了，时代的主要矛盾也变了——这就是为什么，这节课现在可以补了。</p>
+      </section>
+      <section id="part-9" aria-labelledby="heading-9">
+        <div class="section-label">09 / 09</div>
+        <h2 id="heading-9">结语：让激励跟上时代</h2>
+        <p>最后有一件事，我觉得还有必要说一说。</p>
+        <p>一代人有一代人的主要矛盾，八十年代的主要矛盾是短缺——什么东西都缺，所以动力全押在生产上，乡镇企业是对的。九十年代的主要矛盾是中央没钱——所以财权上收，分税制是对的。过去二十年的主要矛盾是城镇化缺资本——所以土地财政有它的历史功劳。任何创新都是为了解决当下的主要矛盾，任何创新也都必然带着代价。但只要主要矛盾解决了，那些代价，可以留给时间和后人去消化。</p>
+        <p>今天的关键问题是什么？是货架满了、产能全球第一了，老百姓想买，却买不起、不敢买、没空买。瓶颈从生产端，挪到了需求端、分配端、人这一端。所以消费税后置这件事，说到底不是税收技术问题，是时代换挡的问题。机器已经轰隆隆在转，缺的只是把地方的钱袋子，焊上去。</p>
+        <p>而且我还想多说一句。有人可能会算账：地方以后如果真的这样子拼命刺激消费，会不会让大家以后更没钱，负债率更高？</p>
+        <p>但我想问你，钱的本质是什么？是一张资源配置的凭证。财政数字好看不好看，是表象；有限的东西有没有流到更多需要的人手里、老百姓有没有拿到真正想要的东西，才是钱的价值的实现。当税基绑定消费之后，藏富于民和财政健康，会变成同一件事——你过得好，地方就收得到税。</p>
+        <p>像德国这样的制造业大国也能居民消费率明显高于我们，所以制造业大国和消费大国从来不是二选一。</p>
+        <p>至于焊上去之后那些新的问题——征管的成本、地区的博弈、税目的扩围——会有人解决的。毕竟，主要矛盾解决了，剩下的问题，就都是次要矛盾了。</p>
+        <p>永远相信后人的智慧——每一代人的主要矛盾，终将在自己的时代被解决。</p>
+        <p>到那时候，不用谁催着地方落实双休，地方自己就怕你不休。你没时间花钱，它的税就没了。激励制度的答案，从来不靠硬切蛋糕，而是靠让更多人主动站到改革这边来。</p>
+      </section>
+    </main>
+  </div>
+  <footer>Tech &amp; Life Notes</footer>
+</div>
+</body>
+</html>
